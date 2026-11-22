@@ -1,1 +1,60 @@
-# Undead-lab
+# Undead Lab
+
+A browser game in the making: realistic-leaning characters (zombies, humans, heroes) rendered in
+[three.js](https://threejs.org), with a procedural "bio" shader layer (skin, rot, wounds, grime, armour wear)
+on top of rigged models and a real photo-scanned head.
+
+Right now this repo is the **character lab**: four collections you can orbit, zoom and animate.
+It is the foundation for the game itself (see [docs/ROADMAP.md](docs/ROADMAP.md)).
+
+| Collection | What's in it |
+| --- | --- |
+| Oni Night | The original three characters with procedural gear |
+| Undead | The Walker (infected trooper), Patient Zero, The Turned (scanned-head bust) |
+| Heroes | Vanguard Prime and Aegis: plate armour, energy blade, cape, circuitry |
+| Humans | Scanned-head busts (full-body humans are the next character task) |
+
+## Run it
+
+Needs Node 20+ (22 recommended) and an internet connection the first time.
+
+```bash
+npm install
+npm run dev          # http://localhost:5173  (also reachable from your phone on the same Wi-Fi)
+npm run build        # production build in dist/
+npm run preview      # serve dist/ on :4173
+npm run lint         # catches undefined names and other slips
+npm run test:screens # headless smoke test + screenshots into docs/screens/ (needs `npm i --no-save playwright`)
+npm run inspect -- public/models/soldier.glb   # dump a model's rig, meshes, materials, textures
+```
+
+The character models (about 9 MB) are **not stored in this repo**. `npm run dev` and `npm run build` download them
+automatically into `public/models/` from the three.js examples (pinned tag, SHA-256 verified). Run `npm run assets` to do it by hand.
+
+URL options: `?c=oni|undead|heroes|humans` picks the collection, `&q=low|med|high` picks the quality tier
+(default: `high` on desktop, `med` on phones).
+
+## Layout
+
+```
+src/core/engine.js        renderer, camera, lights, stages, post-processing, asset loading
+src/shaders/bio.js        the procedural skin / rot / wound / armour shader (injected into three's PBR materials)
+src/characters/           one file per collection + factory.js (rig loading, retargeting) + gear/
+src/main.js               collection registry, UI, main loop
+public/models/            downloaded GLB rigs and head scan (git-ignored)
+tools/                    fetch-assets.mjs (model download + checksums), inspect-glb.mjs
+tests/screenshots.cjs     loads every collection, fails on errors, saves screenshots
+.github/workflows/        CI (lint, build, screenshots) and GitHub Pages deploy
+docs/                     ARCHITECTURE, ASSETS (licences), ROADMAP
+```
+
+## Deploy
+
+Push to `main`; the **Deploy to GitHub Pages** workflow builds and publishes. One-time setup:
+repo **Settings → Pages → Source: GitHub Actions**. Pages is free for public repos only.
+**Read [docs/ASSETS.md](docs/ASSETS.md) before shipping**: the character rigs have their own terms.
+
+## Credits
+
+- Head scan: Infinite, 3D Head Scan by Lee Perry-Smith, CC-BY 3.0, <https://www.triplegangers.com>. Credit is required and shown in the app.
+- three.js (MIT). Character rigs: see [docs/ASSETS.md](docs/ASSETS.md).
