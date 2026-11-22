@@ -1,0 +1,33 @@
+# On every pull request (and push to a non-main branch): build, then load every character
+# collection in headless Chromium (software WebGL). Fails on any console/shader error and
+# uploads the screenshots so you can look at them from the run page.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  screens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run build
+      - run: npm i --no-save playwright && npx playwright install --with-deps chromium
+      - name: Serve build and run smoke test
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 &
+          sleep 3
+          npm run test:screens
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: docs/screens/*.png
