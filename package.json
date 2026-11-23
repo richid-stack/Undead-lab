@@ -14,7 +14,8 @@
     "inspect": "node tools/inspect-glb.mjs",
     "lint": "eslint .",
     "test:screens": "node tests/screenshots.cjs && node tests/play.cjs",
-    "test:play": "node tests/play.cjs"
+    "test:play": "node tests/play.cjs",
+    "osm": "node tools/fetch-osm.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

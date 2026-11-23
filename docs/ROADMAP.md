@@ -1,6 +1,7 @@
 # Roadmap
 
-Target: a browser game (phones and desktops), third-person, set in a real-layout Ghanaian neighbourhood, with survivors, zombies and everyday NPCs.
+Target: a third-person browser game (phones and desktops) set in and around the University of Ghana, Legon, with survivors, the infected ("the Carried") and everyday NPCs.
+Story: [STORY.md](STORY.md). Realism plan (what "photoreal" can mean in a browser, and what we need from you): [REALISM.md](REALISM.md).
 Order matters: each milestone is playable or visible on its own.
 
 ## Honest quality ceiling
@@ -43,7 +44,8 @@ Pipeline (all scripted, repeatable for any neighbourhood):
 4. **Stream** the world in ~100 m chunks with instanced props, building LODs and a baked navmesh per chunk.
 5. **Attribution**: "© OpenStreetMap contributors" in-game.
 
-Start with one small area (a few hundred metres) as a vertical slice, then widen to a district, then more of Accra.
+**First area: University of Ghana, Legon and its surroundings** (Madina, Okponglo, Haatso, East Legon), chosen by the project owner, who knows it well. Run `npm run osm` (or the "Fetch OSM" Action, template in `docs/workflows/fetch-osm.yml`) to download the data into `data/osm/legon.json`.
+Start with one small area (a few hundred metres, around the Night Market and library) as a vertical slice, then widen to the whole campus, then the surroundings, then more of Accra.
 Design the data format so it scales to the wider country, but do not build all of it up front.
 
 ## M5: Gameplay
@@ -55,7 +57,13 @@ Missions, interiors (hand-built or templated rooms), vehicles, hiding places, in
 - Mesh and texture compression (meshopt, KTX2), loading screens, performance budgets on mid-range phones.
 - Decide the three.js upgrade path from 0.160.
 
+## Decided
+- Story: *Sankofa Line* (docs/STORY.md). Rescue over killing: you bring the infected back by finding and saying their names. Powers come from Adinkra symbols. No real company is named; the scam in the story follows the documented pattern of fake overseas-job offers.
+- First area: University of Ghana, Legon and surroundings, plus imagined additions (a sealed colonial rail spur, a night train, an abandoned suspended tram).
+
 ## Needs your input
-- One sentence on the game: who you play, what the goal is, tone (survival horror, action, story).
-- Which part of Ghana to start with (a neighbourhood you know well works best).
+- Correct the landmark list in docs/STORY.md and say where campus feels most alive to you.
+- Reference photos of campus corners, and any recordings of campus sounds (see docs/REALISM.md).
+- Hero: Kwesi, a woman, or a choice at the start?
+- Whether you can scan volunteers' faces (with written consent) for the main cast.
 - Public or private repo (see `docs/ASSETS.md`).
