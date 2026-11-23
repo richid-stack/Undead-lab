@@ -4,8 +4,12 @@ A browser game in the making: realistic-leaning characters (zombies, humans, her
 [three.js](https://threejs.org), with a procedural "bio" shader layer (skin, rot, wounds, grime, armour wear)
 on top of rigged models and a real photo-scanned head.
 
-Right now this repo is the **character lab**: four collections you can orbit, zoom and animate.
+Right now this repo has two parts: the **character lab** (four collections you can orbit, zoom and animate) and a first
+**playable test street**: press **▶ Play** and run a hero around a small West-African-style street with real physics.
 It is the foundation for the game itself (see [docs/ROADMAP.md](docs/ROADMAP.md)).
+
+**Controls:** WASD / arrows move · Shift run · Space jump · mouse to look (click to capture, Esc to release) · wheel zoom.
+On a phone: left thumb moves, right thumb looks, JUMP / RUN buttons.
 
 | Collection | What's in it |
 | --- | --- |
@@ -31,7 +35,7 @@ npm run inspect -- public/models/soldier.glb   # dump a model's rig, meshes, mat
 The character models (about 9 MB) are **not stored in this repo**. `npm run dev` and `npm run build` download them
 automatically into `public/models/` from the three.js examples (pinned tag, SHA-256 verified). Run `npm run assets` to do it by hand.
 
-URL options: `?c=oni|undead|heroes|humans` picks the collection, `&q=low|med|high` picks the quality tier
+URL options: `?play=1` starts the game directly, `?c=oni|undead|heroes|humans` picks the collection, `&q=low|med|high` picks the quality tier
 (default: `high` on desktop, `med` on phones).
 
 ## Layout
@@ -40,10 +44,12 @@ URL options: `?c=oni|undead|heroes|humans` picks the collection, `&q=low|med|hig
 src/core/engine.js        renderer, camera, lights, stages, post-processing, asset loading
 src/shaders/bio.js        the procedural skin / rot / wound / armour shader (injected into three's PBR materials)
 src/characters/           one file per collection + factory.js (rig loading, retargeting) + gear/
+src/game/                 play mode: physics.js (Rapier), world.js (the street), player.js, camera.js, input.js, textures.js, game.js
 src/main.js               collection registry, UI, main loop
 public/models/            downloaded GLB rigs and head scan (git-ignored)
 tools/                    fetch-assets.mjs (model download + checksums), inspect-glb.mjs
 tests/screenshots.cjs     loads every collection, fails on errors, saves screenshots
+tests/play.cjs            drives the hero with real key events (walk, run, jump, wall collision) and screenshots the street
 .github/workflows/        CI (lint, build, screenshots) and GitHub Pages deploy
 docs/                     ARCHITECTURE, ASSETS (licences), ROADMAP
 ```

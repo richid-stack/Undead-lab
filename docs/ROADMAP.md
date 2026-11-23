@@ -16,10 +16,12 @@ Four collections, bio shader, scanned head, gear, retargeted animation, quality 
 
 Known rough spots: the eyes on the scanned-head busts protrude and have no eyelids, the Walker's visor is a flat green shape, Vanguard visor reads flat, Aegis cape reads as a flat panel, Survivor grime/wounds are subtle, cracks look like a regular Voronoi pattern, portrait/mobile layout is not checked.
 
-## M2: Playable character in an empty street
-- Third-person controller (Rapier kinematic character controller), camera collision, jump/crouch, sprint.
-- Input: keyboard + mouse, gamepad, touch (virtual stick + buttons).
-- A test street: flat ground, kerb, walls, a few props, day/night light.
+## M2: Playable character in a test street (first version done)
+Done: press **Play** (or `?play=1`). Third-person hero (Rapier kinematic controller: capsule, steps up to 36 cm, slopes, gravity, jump), idle/walk/run blended by real speed,
+follow camera with wall collision and zoom, keyboard + mouse (drag or pointer-lock) + touch (stick, look-drag, jump, run), and a walled test street at golden hour with
+an asphalt road, drains, shops with signs, kiosks, a chop bar, a container shop, an unfinished concrete frame, compound houses, poles with wires and foliage trees.
+Everything solid has a collider; `tests/play.cjs` checks walking, running, jumping, wall collision and the return to the lab.
+Still to do: crouch, gamepad, interaction prompts (doors, shops), day/night cycle, footsteps/ambient audio, vehicles, interiors.
 
 ## M3: NPCs
 - **Pedestrians and survivors**: the existing rigs, re-skinned per NPC by the bio shader (skin tone, clothing colours, wear), so one skeleton gives a varied crowd.

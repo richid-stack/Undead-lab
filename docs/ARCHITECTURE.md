@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Renderer | three.js **0.160.0** (pinned) | Runs on phones and desktops with no install. The shaders patch three's built-in shader text and use the r160 `GTAOPass` API, so upgrade deliberately, not by accident. |
 | Build | Vite 7 | Fast dev server, ES modules, one-command production build. |
-| Physics (planned) | Rapier (WASM) | Character controller, ragdolls, vehicles. |
+| Physics | Rapier 0.21 (WASM, pinned) | Character controller today; ragdolls and vehicles next. |
 | Pathfinding (planned) | recast-navigation (WASM) | Navmesh generation and crowd agents for NPCs and zombies. |
 | Hosting | GitHub Pages (or any static host) | The game is static files. |
 | Asset tooling | gltf-transform, meshoptimizer, sharp; Blender via `bpy` (planned) | Compress models, bake textures, export. |
@@ -37,6 +37,17 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - Gear (armour plates, bandages, spores, cape, blade) attaches to bones with `attachAt(character, bone, object, worldPointRelativeToRoot)`; offsets are in the character's root space, in metres, in the bind pose.
 - Zombie posture is layered over animation after `mixer.update` with `rotBone` (rotation about a world axis re-expressed in the parent bone's space).
 
+## Play mode (`src/game/`)
+
+- Lazy-loaded from `main.js` (`import('./game/game.js')`), so the lab does not download Rapier's WASM until Play is pressed.
+- `physics.js`: Rapier world, one fixed body carrying every static collider, fixed 60 Hz stepping with an interpolation alpha for rendering.
+- `world.js`: builds the street. Geometry is collected per material and merged (a few dozen draw calls); every solid piece also adds a collider. World-metre UVs so procedural textures tile evenly on any size.
+- `player.js`: kinematic character controller (capsule 0.3 m radius, 1.8 m tall), steps, slopes, jump; animation state follows ground speed, clip playback speed follows ground speed (less foot-sliding).
+- `camera.js`: yaw/pitch orbit with a Rapier ray so the camera stops in front of walls. `input.js`: keyboard, mouse (drag or pointer lock), touch stick/look/jump/run.
+- `game.js` takes over the shared stage (`STAGES.game`, sky, sun sprite, shadow frustum following the player) and puts everything back on exit.
+
 ## Debug hooks (used by the tests)
+
+`window.__game` (while playing: `player`, `cam`, `input`, `P`, `level`), `__enterPlay()`, `__playing`.
 
 `window.__col(id, view)`, `__view(name)`, `__setAnim(name)`, `__q(tier)`, `__stop()`, `__cols`, `__ready`, `__frames`.
