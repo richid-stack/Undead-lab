@@ -13,9 +13,11 @@
     "preview": "vite preview --host --port 4173",
     "inspect": "node tools/inspect-glb.mjs",
     "lint": "eslint .",
-    "test:screens": "node tests/screenshots.cjs"
+    "test:screens": "node tests/screenshots.cjs && node tests/play.cjs",
+    "test:play": "node tests/play.cjs"
   },
   "dependencies": {
+    "@dimforge/rapier3d-compat": "0.21.0",
     "three": "0.160.0"
   },
   "devDependencies": {
