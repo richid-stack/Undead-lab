@@ -77,6 +77,11 @@ export function envScene(kind) {
     panel(2.5, 12, [11, 4, -7], 0x6fa8ff, 12);
     panel(12, 4, [8, 1.5, 9], 0xffd9a0, 2.4);           // gold bounce
     panel(30, 30, [0, -3, 0], 0x23262c, .9);
+  } else if (kind === 'dusk') {
+    dome(0x35507f, 0xe0a574);
+    panel(7, 7, [18, 10, -22], 0xffc890, 14);           // low golden sun
+    panel(24, 24, [0, 14, 0], 0x8fb0ff, 1.3);           // open-sky fill
+    panel(30, 30, [0, -3, 0], 0x6b4a35, .9);            // warm laterite bounce
   } else if (kind === 'portrait') {
     dome(0x2b2d33, 0x0e0f12);
     panel(7, 7, [6, 7, 9], 0xfff4e8, 11);               // big soft key, front-right
@@ -104,6 +109,9 @@ export const STAGES = {
   heroes: { acc: '#6ec3ff', accT: '#041421', btnT: '#cfe9ff', btn: 'rgba(10,16,26,.8)', bg: 0x0a0d13, bgGrad: ['#1c2838', '#05070b'], fog: [0x0a0d13, 8, 20], env: 'studio', envI: .75, exposure: .9,
     key: { c: 0xfff0dc, i: 2.6, p: [-3, 5, 4.5] }, rim: { c: 0x6fa8ff, i: 3.2, p: [3, 3.5, -4] }, fill: { c: 0xffc680, i: .7, p: [3.5, 1.2, 3] },
     floor: { c: 0x14171d, r: .35, m: .45 }, ring: 0x2d6a9a, bloom: [.2, .6, .92], grade: { sat: 1.06, con: 1.08, tint: [1, 1, 1.02], vig: .38, grain: .022, ca: .0015 } },
+  game: { acc: '#ffb36b', accT: '#2a1a10', btnT: '#ffd9a8', btn: 'rgba(30,22,28,.78)', bg: 0xd9a273, fog: [0xd9a273, 38, 130], env: 'dusk', envI: .9, exposure: 1.0,
+    key: { c: 0xffd2a0, i: 3.4, p: [18, 15, -22] }, rim: { c: 0x7f9bff, i: .7, p: [-10, 6, 12] }, fill: { c: 0xffffff, i: 0, p: [0, 1, 1] },
+    floor: { c: 0x2a2630, r: .85, m: .05 }, ring: 0x8a5a3a, bloom: [.22, .55, .9], grade: { sat: 1.05, con: 1.05, tint: [1.02, 1, .97], vig: .28, grain: .016, ca: .001 } },
   humans: { acc: '#f2d7c4', accT: '#241a14', btnT: '#f2e1d3', btn: 'rgba(26,24,24,.8)', bg: 0x16171a, bgGrad: ['#3a3d44', '#0c0d0f'], fog: [0x1a1b1e, 6, 14], env: 'portrait', envI: .95, exposure: 1.0,
     key: { c: 0xfff1e2, i: 2.2, p: [2.5, 3.2, 4] }, rim: { c: 0xffffff, i: 2.8, p: [-3, 3, -3.5] }, fill: { c: 0xdbe6ff, i: .45, p: [-3, 1.2, 3.5] },
     floor: { c: 0x1c1d20, r: .5, m: .1 }, ring: 0x555555, bloom: [.16, .5, .95], grade: { sat: 1.02, con: 1.05, tint: [1, 1, 1], vig: .32, grain: .02, ca: .001 } },
