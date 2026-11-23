@@ -50,19 +50,49 @@ export async function selectCollection(id, view = 'lineup') {
   window.__ready = id;
 }
 for (const [id, C] of Object.entries(COLS)) { const b = document.createElement('button'); b.textContent = C.label; b.dataset.c = id; b.onclick = () => selectCollection(id); $('cols').appendChild(b) }
+const playBtn = document.createElement('button'); playBtn.textContent = '▶ Play'; playBtn.className = 'play'; playBtn.onclick = () => enterPlay(); $('cols').appendChild(playBtn);
 $('q').onclick = () => setQuality({ low: 'med', med: 'high', high: 'low' }[QL]);
 Object.assign(window, { __view: n => setView(n, true), __col: (id, v) => selectCollection(id, v), __stop: () => { controls.autoRotate = false }, __setAnim: setAnim, __q: setQuality, __cols: COLS });
 
+// ---- play mode (lazy: Rapier + the street are only fetched when Play is pressed) ----
+export let game = null; let playing = false;
+export async function enterPlay() {
+  if (playing) return; playing = true;
+  const l = busy('Loading game…');
+  try {
+    const { createGame } = await import('./game/game.js');
+    for (const o of Object.values(COLS)) if (o.inst) o.inst.group.visible = false;
+    game = await createGame({ onExit: exitPlay, say: m => { const e = $('loadmsg'); if (e) e.textContent = m } });
+  } catch (e) {
+    console.error('GAME FAIL', e); l.firstChild.textContent = 'Failed: ' + e.message; game = null; playing = false;
+    await new Promise(r => setTimeout(r, 1800)); await selectCollection(cur, curView); return;
+  }
+  document.body.classList.add('playing');
+  document.querySelector('#name b').textContent = 'Test street'; document.querySelector('#name span').textContent = 'Placeholder yard · real Ghana streets come next';
+  window.__game = game; window.__playing = true;
+  const ld = $('load'); if (ld) { ld.style.opacity = 0; setTimeout(() => ld.remove(), 380) }
+}
+export async function exitPlay() {
+  if (!game) return; game.dispose(); game = null; playing = false; window.__game = null; window.__playing = false;
+  document.body.classList.remove('playing'); await selectCollection(cur, curView);
+}
+window.__enterPlay = enterPlay;
+
 setQuality(QL);
 await selectCollection(URLQ.get('c') in COLS ? URLQ.get('c') : 'oni', URLQ.get('v') || 'lineup');
+
+if (URLQ.get('play')) await enterPlay();
 
 export const clock = new THREE.Clock(); let fcount = 0;
 (function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime; BIO_T.value = t;
-  const C = COLS[cur]; if (C && C.inst) C.inst.update(dt, t);
-  if (tween) { camera.position.lerp(tween.p, .08); controls.target.lerp(tween.t, .08); if (camera.position.distanceTo(tween.p) < .01) tween = null }
-  controls.update();
+  if (game) game.update(dt, t);
+  else {
+    const C = COLS[cur]; if (C && C.inst) C.inst.update(dt, t);
+    if (tween) { camera.position.lerp(tween.p, .08); controls.target.lerp(tween.t, .08); if (camera.position.distanceTo(tween.p) < .01) tween = null }
+    controls.update();
+  }
   if (composer) { P.grade.uniforms.uTime.value = t; P.grade.uniforms.uRes.value.set(innerWidth, innerHeight); composer.render(dt) } else renderer.render(scene, camera);
   window.__frames = ++fcount;
 })();
