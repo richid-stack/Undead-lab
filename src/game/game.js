@@ -11,6 +11,9 @@ import { createPlayer } from './player.js';
 import { FollowCam } from './camera.js';
 import { Input } from './input.js';
 import { sky } from './textures.js';
+import { buildRange } from './range.js';
+import { createWeapons } from './weapons.js';
+import { createAudio } from './audio.js';
 
 export async function createGame({ onExit, say = () => {} }) {
   say('Starting physics…');
@@ -30,23 +33,28 @@ export async function createGame({ onExit, say = () => {} }) {
   key.shadow.bias = -.0004; key.shadow.normalBias = .035; scene.add(key.target);
   const sunDir = new THREE.Vector3(18, 15, -22).normalize(), sunOff = new THREE.Vector3(18, 15, -22).multiplyScalar(1.6);
   const sun = glow(0xffd29a, 70), sunCore = glow(0xfff0d0, 22); sun.material.opacity = .85;
-  scene.add(level.group, player.body.root, sun, sunCore);
+  const range = buildRange(P);
+  scene.add(level.group, range.group, player.body.root, sun, sunCore);
 
   const hud = document.createElement('div'); hud.id = 'hud';
-  hud.innerHTML = `<button id="back">← Lab</button><div id="hint">${COARSE ? 'Left thumb: move · Right thumb: look' : 'WASD / arrows move · Shift run · Space jump · Mouse look (click to capture, Esc to free) · Wheel zoom'}</div>`;
+  hud.innerHTML = `<button id="back">← Lab</button><div id="hint">${COARSE ? 'Left thumb: move · Right thumb: look' : 'WASD move · Shift run · Space jump · Mouse look (click to capture) · Right-click / Q aim · Click / F fire · R reload · 1 2 3 weapons · Range button: firing range'}</div>`;
   document.body.appendChild(hud);
   hud.querySelector('#back').onclick = () => onExit();
   const input = new Input(renderer.domElement, hud, { touch: COARSE || navigator.maxTouchPoints > 0 });
+  if (input.touch) document.body.classList.add('touch');
   const cam = new FollowCam(camera, P, level.heading);
+  const audio = createAudio(), weapons = createWeapons({ P, scene, camera, cam, player, hud, range, audio, input });
+  const wake = () => audio.resume(); addEventListener('pointerdown', wake); addEventListener('keydown', wake);
 
   const g = {
-    P, level, player, cam, input, hud,
+    P, level, player, cam, input, hud, range, weapons, audio,
     update(dt) {
       const l = input.takeLook(); if (l.x || l.y) cam.look(l.x, l.y);
       const z = input.takeZoom(); if (z) cam.zoom(z);
-      const alpha = P.advance(dt, h => player.step(h, input, cam.yaw));
+      const alpha = P.advance(dt, h => { weapons.step(h); range.tick(h); player.step(h, input, cam.yaw) });
       // keep the player inside the walls (belt and braces: the colliders already do this)
       const b = level.bounds; player.pos.x = THREE.MathUtils.clamp(player.pos.x, b.x0, b.x1); player.pos.z = THREE.MathUtils.clamp(player.pos.z, b.z0, b.z1);
+      weapons.update(dt); range.update();
       player.render(alpha, dt);
       cam.update(dt, player.view, player.col);
       const p = player.view;
@@ -55,11 +63,12 @@ export async function createGame({ onExit, say = () => {} }) {
     },
     /** advance the simulation by `sec` seconds without rendering (used by the tests; frame-rate independent) */
     simulate(sec) {
-      for (let i = 0, n = Math.round(sec / STEP); i < n; i++) { player.step(STEP, input, cam.yaw); P.world.step() }
-      player.render(1, 0);
+      for (let i = 0, n = Math.round(sec / STEP); i < n; i++) { weapons.step(STEP); range.tick(STEP); player.step(STEP, input, cam.yaw); P.world.step(); cam.update(STEP, player.pos, player.col) }
+      weapons.update(0); range.update(); player.render(1, 0);
     },
     dispose() {
-      input.dispose(); hud.remove(); player.dispose(); scene.remove(level.group, player.body.root, sun, sunCore, key.target);
+      removeEventListener('pointerdown', wake); removeEventListener('keydown', wake); weapons.dispose(); audio.dispose(); range.dispose(); scene.remove(range.group);
+      document.body.classList.remove('touch'); input.dispose(); hud.remove(); player.dispose(); scene.remove(level.group, player.body.root, sun, sunCore, key.target);
       level.group.traverse(o => { if (o.isMesh) { o.geometry.dispose() } });
       P.dispose();
       Object.assign(sc, { left: savedBox.l, right: savedBox.r, top: savedBox.t, bottom: savedBox.b, near: savedBox.n, far: savedBox.f }); sc.updateProjectionMatrix();

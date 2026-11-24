@@ -25,18 +25,18 @@ export async function createPlayer(P, spawn, heading = Math.PI / 2) {
     if (/visor/i.test(mm.name)) { mm.emissive = new THREE.Color(0x2fa8e8); mm.emissiveIntensity = .22; mm.roughness = .08; mm.metalness = .2; mm.color.set(0x050b14) } else { mm.metalness = .8; mm.roughness = .34 }
   }));
   attachAt(body, 'Spine2', energyCore(.03), [0, 1.42, .16]);
-  attachAt(body, 'Spine2', capeMesh(.52, 1.0, '#1b4fa0', '#d9a93a', 4), [0, 1.62, -.19]);
+  const cape = attachAt(body, 'Spine2', capeMesh(.52, 1.0, '#1b4fa0', '#d9a93a', 4), [0, 1.62, -.19]);
 
   const rb = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(spawn.x, spawn.y + FOOT + .02, spawn.z));
   const col = world.createCollider(RAPIER.ColliderDesc.capsule(HALF, RAD), rb);
   const ctrl = world.createCharacterController(.02);
   ctrl.setUp({ x: 0, y: 1, z: 0 }); ctrl.setSlideEnabled(true); ctrl.enableAutostep(.36, .2, false); ctrl.enableSnapToGround(.3);
-  ctrl.setMaxSlopeClimbAngle(48 * Math.PI / 180); ctrl.setMinSlopeSlideAngle(55 * Math.PI / 180);
+  ctrl.setApplyImpulsesToDynamicBodies(true); ctrl.setCharacterMass(70); ctrl.setMaxSlopeClimbAngle(48 * Math.PI / 180); ctrl.setMinSlopeSlideAngle(55 * Math.PI / 180);
 
   const pl = {
-    body, rb, col, ctrl,
+    body, rb, col, ctrl, cape,
     pos: new THREE.Vector3(spawn.x, spawn.y + FOOT + .02, spawn.z), prev: new THREE.Vector3(), vel: new THREE.Vector3(), vy: 0,
-    heading, grounded: false, speed: 0, state: 'Idle', moveDir: new THREE.Vector3(),
+    heading, grounded: false, speed: 0, state: 'Idle', moveDir: new THREE.Vector3(), aimMode: false, post: null,
     /** feet position (for gameplay), centre = pos */
     get feet() { return new THREE.Vector3(this.pos.x, this.pos.y - FOOT, this.pos.z) },
     teleport(x, y, z) { this.pos.set(x, y + FOOT + .02, z); this.prev.copy(this.pos); this.vel.set(0, 0, 0); this.vy = 0; rb.setTranslation({ x, y: y + FOOT + .02, z }, true); rb.setNextKinematicTranslation({ x, y: y + FOOT + .02, z }) },
@@ -45,11 +45,12 @@ export async function createPlayer(P, spawn, heading = Math.PI / 2) {
       this.prev.copy(this.pos);
       const m = input.move(), cf = Math.sin(camYaw), cg = Math.cos(camYaw);
       const wx = cf * m.z - cg * m.x, wz = cg * m.z + cf * m.x;                  // world move direction (forward = (sin,cos), right = (-cos,sin))
-      const sp = m.mag * (m.run ? RUN : WALK) * (m.mag < 1 && !m.run ? Math.max(.5, m.mag) : 1);
+      const aim = this.aimMode, sp = m.mag * (m.run && !aim ? RUN : WALK) * (m.mag < 1 && !m.run ? Math.max(.5, m.mag) : 1);
       const k = 1 - Math.exp(-h * (sp > this.speed ? 9 : 14));
       this.vel.x += (wx * sp - this.vel.x) * k; this.vel.z += (wz * sp - this.vel.z) * k;
       this.speed = Math.hypot(this.vel.x, this.vel.z);
-      if (this.speed > .25) { this.heading += angDiff(this.heading, Math.atan2(this.vel.x, this.vel.z)) * (1 - Math.exp(-h * 12)) }
+      if (aim) this.heading += angDiff(this.heading, camYaw) * (1 - Math.exp(-h * 14));                   // aiming: face where the camera looks (strafe)
+      else if (this.speed > .25) { this.heading += angDiff(this.heading, Math.atan2(this.vel.x, this.vel.z)) * (1 - Math.exp(-h * 12)) }
       if (this.grounded && this.vy <= 0) { this.vy = 0; if (input.takeJump()) { this.vy = JUMP_V; this.grounded = false } } else input.takeJump();
       this.vy -= GRAV * h; if (this.vy < -30) this.vy = -30;
       if (this.vy > 0) ctrl.disableSnapToGround(); else ctrl.enableSnapToGround(.3);
@@ -69,6 +70,7 @@ export async function createPlayer(P, spawn, heading = Math.PI / 2) {
       if (want !== this.state) { this.state = want; play(body, want) }
       const a = body.acts[this.state]; if (a) a.timeScale = this.state === 'Idle' ? 1 : clamp(this.speed / (this.state === 'Walk' ? 1.5 : 4.1), .6, 1.5);
       body.mixer.update(dt);
+      if (this.post) this.post(this);                                              // weapons: arm pose + gun placement after the animation
     },
     dispose() { body.root.removeFromParent(); body.mixer.stopAllAction() },
   };
