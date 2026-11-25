@@ -9,7 +9,9 @@ Right now this repo has two parts: the **character lab** (four collections you c
 It is the foundation for the game itself (see [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 **Controls:** WASD / arrows move · Shift run · Space jump · mouse to look (click to capture, Esc to release) · wheel zoom.
-On a phone: left thumb moves, right thumb looks, JUMP / RUN buttons.
+Shooting: **Q** or right-click aim · **F** or left-click fire · **R** reload · **1 2 3** pistol / rifle / Dane gun. The **Range** button teleports you to a firing range
+(plates, drums, crates, mannequins). Design and limits: [docs/COMBAT.md](docs/COMBAT.md).
+On a phone: left thumb moves, right thumb looks, JUMP / RUN / FIRE / AIM / R / ⇄ buttons.
 
 | Collection | What's in it |
 | --- | --- |
@@ -28,7 +30,7 @@ npm run dev          # http://localhost:5173  (also reachable from your phone on
 npm run build        # production build in dist/
 npm run preview      # serve dist/ on :4173
 npm run lint         # catches undefined names and other slips
-npm run test:screens # headless smoke test + screenshots into docs/screens/ (needs `npm i --no-save playwright`)
+npm run test:screens # headless smoke tests (lab, play, shooting) + screenshots into docs/screens/ (needs `npm i --no-save playwright`)
 npm run inspect -- public/models/soldier.glb   # dump a model's rig, meshes, materials, textures
 ```
 
@@ -44,14 +46,16 @@ URL options: `?play=1` starts the game directly, `?c=oni|undead|heroes|humans` p
 src/core/engine.js        renderer, camera, lights, stages, post-processing, asset loading
 src/shaders/bio.js        the procedural skin / rot / wound / armour shader (injected into three's PBR materials)
 src/characters/           one file per collection + factory.js (rig loading, retargeting) + gear/
-src/game/                 play mode: physics.js (Rapier), world.js (the street), player.js, camera.js, input.js, textures.js, game.js
+src/game/                 play mode: physics.js (Rapier), world.js (the street), player.js, camera.js, input.js, textures.js, game.js,
+                          weapons.js (guns, aiming, recoil, effects), range.js (firing range targets), audio.js (procedural sound)
 src/main.js               collection registry, UI, main loop
 public/models/            downloaded GLB rigs and head scan (git-ignored)
 tools/                    fetch-assets.mjs (model download + checksums), inspect-glb.mjs
 tests/screenshots.cjs     loads every collection, fails on errors, saves screenshots
 tests/play.cjs            drives the hero with real key events (walk, run, jump, wall collision) and screenshots the street
+tests/shoot.cjs           drives the weapons at the firing range (aim, recoil, reload, auto fire, headshots, Dane gun)
 .github/workflows/        CI (lint, build, screenshots) and GitHub Pages deploy
-docs/                     ARCHITECTURE, ASSETS (licences), ROADMAP
+docs/                     ARCHITECTURE, ASSETS (licences), ROADMAP, STORY, REALISM, COMBAT
 ```
 
 ## Deploy

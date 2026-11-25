@@ -45,9 +45,13 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - `player.js`: kinematic character controller (capsule 0.3 m radius, 1.8 m tall), steps, slopes, jump; animation state follows ground speed, clip playback speed follows ground speed (less foot-sliding).
 - `camera.js`: yaw/pitch orbit with a Rapier ray so the camera stops in front of walls. `input.js`: keyboard, mouse (drag or pointer lock), touch stick/look/jump/run.
 - `game.js` takes over the shared stage (`STAGES.game`, sky, sun sprite, shadow frustum following the player) and puts everything back on exit.
+- `weapons.js`: weapon data (`WEAPONS`), hit-scan from the crosshair (`castRayAndGetNormal`, random cone from spread) against the Rapier world, recoil, magazines, effect pools (tracers, sparks, dust, decals), HUD, and the arm pose: two-bone IK after `mixer.update` plus a world-space gun. Shots push noise events into `weapons.noises` for future enemies.
+- `range.js`: firing range. Every shootable collider is registered in `tags` (collider handle → `{ kind, hit(info) }`), so the weapon code needs no knowledge of what it hit. Drums / crates / cans are dynamic Rapier bodies (impulse capped by mass); mannequins are static colliders that are disabled while down. Timers run in the fixed tick (`range.tick(h)`), mesh sync per frame (`range.update()`).
+- `audio.js`: procedural Web Audio (shots with an echo, clicks, impacts); starts on the first key press or click.
+- Fixed tick order: `weapons.step → range.tick → player.step → world.step`; per frame: `weapons.update → range.update → player.render → cam.update`.
 
 ## Debug hooks (used by the tests)
 
-`window.__game` (while playing: `player`, `cam`, `input`, `P`, `level`), `__enterPlay()`, `__playing`.
+`window.__game` (while playing: `player`, `cam`, `input`, `P`, `level`, `range`, `weapons`, `audio`, `simulate(sec)` to step physics without rendering), `__enterPlay()`, `__playing`.
 
 `window.__col(id, view)`, `__view(name)`, `__setAnim(name)`, `__q(tier)`, `__stop()`, `__cols`, `__ready`, `__frames`.
