@@ -9,6 +9,7 @@ import { buildOni } from './characters/oni.js';
 import { buildHumans } from './characters/humans.js';
 import { buildUndead } from './characters/undead.js';
 import { buildHeroes } from './characters/heroes.js';
+import { buildWeapons } from './weapons/lab.js';
 import './style.css';
 
 // =====================================================================================
@@ -18,6 +19,7 @@ export const COLS = {
   oni: { label: 'Oni Night', stage: 'oni', build: buildOni, credit: '' },
   undead: { label: 'Undead', stage: 'undead', build: buildUndead, credit: 'Head scan: Infinite / Lee Perry-Smith (CC-BY 3.0, triplegangers.com)' },
   heroes: { label: 'Heroes', stage: 'heroes', build: buildHeroes, credit: '' },
+  weapons: { label: 'Weapons', stage: 'weapons', build: buildWeapons, credit: '' },
   humans: { label: 'Humans', stage: 'humans', build: buildHumans, credit: 'Head scan: Infinite / Lee Perry-Smith (CC-BY 3.0, triplegangers.com)' },
 };
 export let cur = null, curView = 'lineup', tween = null, animSel = 'Idle';

@@ -77,6 +77,14 @@ export function envScene(kind) {
     panel(2.5, 12, [11, 4, -7], 0x6fa8ff, 12);
     panel(12, 4, [8, 1.5, 9], 0xffd9a0, 2.4);           // gold bounce
     panel(30, 30, [0, -3, 0], 0x23262c, .9);
+  } else if (kind === 'bench') {
+    dome(0x4a4f5a, 0x1a1512);
+    panel(9, 5, [0, 9, 1], 0xffffff, 8);                // big overhead softbox
+    panel(1.6, 10, [-8, 3.5, 3], 0xfff0dc, 10);         // long warm strip, left
+    panel(1.6, 10, [8, 3.5, 3], 0xe6efff, 9);           // long cool strip, right
+    panel(10, 1.6, [0, 4, -9], 0xffffff, 8);            // back strip for barrel highlights
+    panel(6, 4, [-6, 1.5, 8], 0xffe0b8, 2.2);           // warm front bounce
+    panel(30, 30, [0, -3, 0], 0x3a332c, .9);
   } else if (kind === 'dusk') {
     dome(0x35507f, 0xe0a574);
     panel(7, 7, [18, 10, -22], 0xffc890, 14);           // low golden sun
@@ -109,6 +117,9 @@ export const STAGES = {
   heroes: { acc: '#6ec3ff', accT: '#041421', btnT: '#cfe9ff', btn: 'rgba(10,16,26,.8)', bg: 0x0a0d13, bgGrad: ['#1c2838', '#05070b'], fog: [0x0a0d13, 8, 20], env: 'studio', envI: .75, exposure: .9,
     key: { c: 0xfff0dc, i: 2.6, p: [-3, 5, 4.5] }, rim: { c: 0x6fa8ff, i: 3.2, p: [3, 3.5, -4] }, fill: { c: 0xffc680, i: .7, p: [3.5, 1.2, 3] },
     floor: { c: 0x14171d, r: .35, m: .45 }, ring: 0x2d6a9a, bloom: [.2, .6, .92], grade: { sat: 1.06, con: 1.08, tint: [1, 1, 1.02], vig: .38, grain: .022, ca: .0015 } },
+  weapons: { acc: '#e0b070', accT: '#241606', btnT: '#f1d9b0', btn: 'rgba(24,18,14,.82)', bg: 0x0b0a0c, bgGrad: ['#3a322c', '#060505'], fog: [0x0b0a0c, 8, 22], env: 'bench', envI: 1.15, exposure: 1.1,
+    key: { c: 0xfff0dc, i: 2.6, p: [-2.5, 4.5, 4] }, rim: { c: 0xcfdcff, i: 1.0, p: [3, 3, -4] }, fill: { c: 0xffc88a, i: .5, p: [3.5, 1.4, 3] },
+    floor: { c: 0x17120f, r: 1, m: 0 }, ring: 0x2a2018, bloom: [.1, .5, .95], grade: { sat: 1.04, con: 1.06, tint: [1.02, 1, .97], vig: .3, grain: .02, ca: .001 } },
   game: { acc: '#ffb36b', accT: '#2a1a10', btnT: '#ffd9a8', btn: 'rgba(30,22,28,.78)', bg: 0xd9a273, fog: [0xd9a273, 38, 130], env: 'dusk', envI: .9, exposure: 1.0,
     key: { c: 0xffd2a0, i: 3.4, p: [18, 15, -22] }, rim: { c: 0x7f9bff, i: .7, p: [-10, 6, 12] }, fill: { c: 0xffffff, i: 0, p: [0, 1, 1] },
     floor: { c: 0x2a2630, r: .85, m: .05 }, ring: 0x8a5a3a, bloom: [.22, .55, .9], grade: { sat: 1.05, con: 1.05, tint: [1.02, 1, .97], vig: .28, grain: .016, ca: .001 } },

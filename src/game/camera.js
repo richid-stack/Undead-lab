@@ -26,7 +26,7 @@ export class FollowCam {
     const { RAPIER, world } = this.P, cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
     const fx = Math.sin(this.yaw), fz = Math.cos(this.yaw);
     this.aimK += ((this.aimOn ? 1 : 0) - this.aimK) * (1 - Math.exp(-dt * 10));
-    const sh = .45 + .45 * this.aimK, want = this.want + (Math.min(this.want, 3.0) - this.want) * this.aimK, fov = this.baseFov * (1 - .16 * this.aimK);
+    const sh = .45 + .8 * this.aimK, want = this.want + (Math.min(this.want, 2.7) - this.want) * this.aimK, fov = this.baseFov * (1 - .16 * this.aimK);
     if (Math.abs(this.camera.fov - fov) > .01) { this.camera.fov = fov; this.camera.updateProjectionMatrix() }
     this.target.set(p.x - fz * sh, p.y + .62, p.z + fx * sh);                 // head height, nudged to the right shoulder... (right = (-cos, 0, sin))
     this.dir.set(-fx * cp, sp, -fz * cp);                                        // from the target out to the camera

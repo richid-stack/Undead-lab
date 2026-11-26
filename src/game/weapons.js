@@ -3,34 +3,18 @@
  * Shooting for the hero: three weapons (pistol, assault rifle, Dane gun), over-the-shoulder aiming, spread that grows while
  * you move or fire in bursts, recoil that kicks the camera, magazines and reloads, hit-scan bullets cast from the crosshair
  * against the Rapier world, tracers, muzzle flash, sparks / dust / decals, hit markers, and noise events for later enemies.
- * The weapon models are procedural placeholders; real models come from asset downloads (docs/REALISM.md).
+ * The weapon models come from src/weapons/models.js (the same detailed, animated models the Weapons lab page shows).
  */
 import * as THREE from 'three';
 import { glow, rng, clamp } from '../core/engine.js';
 import { RANGE_LINE } from './range.js';
+import { BUILDERS } from '../weapons/models.js';
 
 export const WEAPONS = [
-  { id: 'pistol', name: 'Pistol', auto: false, rpm: 380, mag: 12, reserve: 48, dmg: 30, pellets: 1, spread: .3, bloom: .5, bloomMax: 2.2, kick: .018, kickYaw: .004, reload: 1.6, range: 150, sound: 'pistol', noise: .7 },
-  { id: 'rifle', name: 'Assault rifle', auto: true, rpm: 600, mag: 30, reserve: 120, dmg: 24, pellets: 1, spread: .22, bloom: .3, bloomMax: 3.2, kick: .012, kickYaw: .006, reload: 2.4, range: 220, sound: 'rifle', noise: 1 },
-  { id: 'dane', name: 'Dane gun', auto: false, rpm: 45, mag: 1, reserve: 16, dmg: 14, pellets: 9, spread: 2.4, bloom: 0, bloomMax: 0, kick: .075, kickYaw: .012, reload: 3.4, range: 45, sound: 'dane', noise: 1 },
+  { id: 'pistol', name: 'Pistol', auto: false, rpm: 380, mag: 12, reserve: 48, dmg: 30, pellets: 1, spread: .3, bloom: .5, bloomMax: 2.2, kick: .018, kickYaw: .004, reload: 1.6, range: 150, sound: 'pistol', noise: .7, cycle: .16, lh: { fwd: .05, side: -.07, up: -.03 } },
+  { id: 'rifle', name: 'Assault rifle', auto: true, rpm: 600, mag: 30, reserve: 120, dmg: 24, pellets: 1, spread: .22, bloom: .3, bloomMax: 3.2, kick: .012, kickYaw: .006, reload: 2.4, range: 220, sound: 'rifle', noise: 1, cycle: .1, lh: { fwd: .28, side: 0, up: .012 } },
+  { id: 'dane', name: 'Dane gun', auto: false, rpm: 45, mag: 1, reserve: 16, dmg: 14, pellets: 9, spread: 2.4, bloom: 0, bloomMax: 0, kick: .075, kickYaw: .012, reload: 3.4, range: 45, sound: 'dane', noise: 1, cycle: .35, lh: { fwd: .34, side: 0, up: -.005 } },
 ];
-
-// ---- placeholder gun models: +z is forward, the origin is the grip ----
-function gunModel(id) {
-  const g = new THREE.Group(), steel = new THREE.MeshStandardMaterial({ color: 0x25282b, roughness: .4, metalness: .85 }), wood = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: .7 });
-  const box = (w, h, d, x, y, z, m = steel, rx = 0) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.x = rx; o.castShadow = true; g.add(o); return o };
-  const cyl = (r, len, x, y, z, m = steel) => { const o = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), m); o.rotation.x = Math.PI / 2; o.position.set(x, y, z); o.castShadow = true; g.add(o); return o };
-  const muzzle = new THREE.Object3D(); g.add(muzzle);
-  if (id === 'pistol') {
-    box(.032, .045, .2, 0, .055, .07); box(.03, .1, .045, 0, -.03, -.01, steel, .22); box(.012, .02, .05, 0, .085, .17, steel); cyl(.008, .03, 0, .05, .185); muzzle.position.set(0, .055, .21);
-  } else if (id === 'rifle') {
-    box(.05, .075, .32, 0, .03, .12); cyl(.011, .42, 0, .05, .47); box(.045, .05, .26, 0, .045, .35, wood); box(.04, .1, .045, 0, -.05, -.01, steel, .15);
-    box(.036, .15, .06, 0, -.1, .15, steel, .18); box(.05, .1, .3, 0, .0, -.22, wood); box(.012, .03, .012, 0, .095, .55); box(.02, .024, .05, 0, .085, .0); muzzle.position.set(0, .05, .69);
-  } else {
-    cyl(.017, .9, 0, .05, .5); cyl(.012, .7, 0, .02, .45); box(.05, .1, .34, 0, 0, -.12, wood); box(.04, .06, .26, 0, .02, .1, wood); box(.03, .08, .045, 0, -.07, -.05, wood, .18); muzzle.position.set(0, .05, .96);
-  }
-  g.userData.muzzle = muzzle; return g;
-}
 
 const _d = new THREE.Vector3(), _r = new THREE.Vector3(), _u = new THREE.Vector3(), _o = new THREE.Vector3(), _p = new THREE.Vector3(), _n = new THREE.Vector3(), _m = new THREE.Vector3(), _l = new THREE.Vector3();
 const UP = new THREE.Vector3(0, 1, 0), YAXIS = new THREE.Vector3(0, 1, 0);
@@ -39,13 +23,13 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
   const { RAPIER, world } = P, rnd = rng(77), R = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 1 });
   const st = WEAPONS.map(w => ({ ammo: w.mag, reserve: w.reserve }));
   const w = {
-    cfg: { fwd: .36, drop: .1, side: .1, lfwd: .27, readyFwd: .3, readyDrop: .42, readyPitch: .6 },
+    cfg: { fwd: .36, drop: .1, side: .14, lfwd: .27, readyFwd: .3, readyDrop: .42, readyPitch: .6 },
     cur: 0, cool: 0, reload: 0, bloom: 0, sinceShot: 9, recoil: 0, armK: 0, flash: 0, fxSpeed: 1, hitT: 0, dt: .016, noises: [], stats: { shots: 0, hits: 0 }, last: null,
     get weapon() { return WEAPONS[this.cur] }, get state() { return st[this.cur] },
   };
 
   // ---- models ----
-  const guns = WEAPONS.map(x => { const g = gunModel(x.id); g.visible = false; scene.add(g); return g });
+  const models = WEAPONS.map(x => BUILDERS[x.id]()), guns = models.map(m => { m.group.visible = false; scene.add(m.group); return m.group });
   guns[0].visible = true;
   const muzzleP = new THREE.Vector3();
 
@@ -183,6 +167,15 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
     aimBone(up, fo, _bv.subVectors(_E2, _S).normalize().clone());
     fo.getWorldPosition(_E); aimBone(fo, ha, _bv.subVectors(T, _E).normalize().clone());
   };
+  const fingerRest = new Map(), fingerSet = new Map(), qa = new THREE.Quaternion(), ZA = new THREE.Vector3(0, 0, 1), tgtR = new THREE.Vector3(), CURL = 1;   // on this rig both hands curl with the same sign about local z
+  /** curl the four fingers about their local z axis. Starts from the animation's pose (or the bind pose if the clip does not drive the finger), so it never accumulates */
+  const curl = (body, side, amount, sgn) => {
+    for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (let i = 1; i <= 3; i++) {
+      const b = body.bones[`${side}Hand${f}${i}`]; if (!b) continue;
+      const prev = fingerSet.get(b); if (!prev || !b.quaternion.equals(prev)) fingerRest.set(b, b.quaternion.clone());
+      qa.setFromAxisAngle(ZA, sgn * amount * [.8, 1.1, .7][i - 1]); b.quaternion.copy(fingerRest.get(b)).multiply(qa); fingerSet.set(b, b.quaternion.clone());
+    }
+  };
   const gunPos = new THREE.Vector3(), aimD = new THREE.Vector3(), fwd = new THREE.Vector3(), rgt = new THREE.Vector3(), mid = new THREE.Vector3(), dirNow = new THREE.Vector3(), hl = new THREE.Vector3(), poleR = new THREE.Vector3(), poleL = new THREE.Vector3();
   player.post = function (pl) {
     const body = pl.body, aim = pl.aimMode, dt = w.dt || .016, c = w.cfg, W = w.weapon;
@@ -195,12 +188,15 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
     body.bones.RightArm.getWorldPosition(_T); body.bones.LeftArm.getWorldPosition(mid); mid.add(_T).multiplyScalar(.5);                       // shoulder midpoint
     gunPos.copy(mid).addScaledVector(fwd, c.readyFwd * (1 - k) + c.fwd * k).addScaledVector(rgt, c.side).addScaledVector(UP, -(c.readyDrop * (1 - k) + c.drop * k) - dip * .12);
     if (k > .02) gunPos.addScaledVector(aimD, 0).y += aimD.y * c.fwd * k * .6;
-    hl.copy(gunPos).addScaledVector(dirNow, W.id === 'pistol' ? .05 : c.lfwd).addScaledVector(rgt, W.id === 'pistol' ? -.07 : -.01).addScaledVector(UP, -.03);
+    hl.copy(gunPos).addScaledVector(dirNow, W.lh.fwd).addScaledVector(rgt, W.lh.side).addScaledVector(UP, W.lh.up);
     poleR.copy(rgt).multiplyScalar(.8).addScaledVector(UP, -.8); poleL.copy(rgt).multiplyScalar(-.8).addScaledVector(UP, -.8);
-    armIK(body, 'Right', gunPos, poleR); armIK(body, 'Left', hl, poleL);
+    tgtR.copy(gunPos).addScaledVector(dirNow, -.06).addScaledVector(UP, .012); hl.addScaledVector(dirNow, -.05);          // the wrist sits behind the palm, so the palm lands on the grip
+    armIK(body, 'Right', tgtR, poleR); armIK(body, 'Left', hl, poleL);
+    curl(body, 'Right', 1.1 * k, CURL); curl(body, 'Left', (W.id === 'pistol' ? 1.1 : .9) * k, CURL);
     const gun = guns[w.cur]; gun.position.copy(gunPos); gun.lookAt(_T.copy(gunPos).addScaledVector(dirNow, 10)); gun.updateMatrixWorld(true);
-    gun.userData.muzzle.getWorldPosition(muzzleP);
-    if (w.flash > 0) { flashS.visible = flashS2.visible = true; flashS.position.copy(muzzleP); flashS2.position.copy(muzzleP); flashS.scale.setScalar(.45 + rnd() * .4); flashS2.scale.setScalar(.2 + rnd() * .1) } else flashS.visible = flashS2.visible = false;
+    const M = models[w.cur], sn = w.sinceShot, ss = w.state; M.pose({ fire: sn < W.cycle ? sn / W.cycle : -1, reload: w.reload > 0 ? clamp(w.reload / W.reload, 0, 1) : 0, empty: ss.ammo === 0 }); gun.updateMatrixWorld(true);
+    M.muzzle.getWorldPosition(muzzleP);
+    if (w.flash > 0) { flashS.visible = flashS2.visible = true; flashS.position.copy(muzzleP); flashS2.position.copy(muzzleP); flashS.scale.setScalar(.26 + rnd() * .2); flashS2.scale.setScalar(.11 + rnd() * .06) } else flashS.visible = flashS2.visible = false;
   };
 
   // ---- helpers for the range and the tests ----
