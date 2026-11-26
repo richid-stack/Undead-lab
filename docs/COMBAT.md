@@ -23,7 +23,7 @@ Press **▶ Play**, then the **Range** button at the top of the screen. The rule
 
 ## Weapons
 
-**[built]** placeholder models and procedural sound, real behaviour:
+**[built]** detailed animated models (see the Weapons page in the lab), procedural placeholder sound, real behaviour:
 
 | Weapon | Fire | Magazine / reserve | Notes |
 | --- | --- | --- | --- |
@@ -49,7 +49,8 @@ Controls: **Q** or right-click aim · **F** or left-click fire (pointer must be 
 
 ## Honest limits of the prototype
 
-- Gun models are small procedural placeholders, barely readable at aim distance. Proper models and recorded sounds come from downloads (see [REALISM.md](REALISM.md)).
+- Gun models are procedural (bevelled, multi-part, with working parts), not scanned: good for a browser game, not photogrammetry. Seen from behind the shoulder a gun is foreshortened, as in any third-person shooter. Recorded sounds still come later (see [REALISM.md](REALISM.md)).
+- Hands: fingers curl around the grips, but thumbs are not posed and the hero's hands are the stock rig's.
 - Hit-scan only. Strafing while aiming plays the forward walk animation (no strafe/back clips yet). The cape looks like a flat slab when not aiming.
 - Mannequins are static targets. Real enemies (hit reactions, ragdolls, cover, perception) arrive with M3 and the navmesh.
 - The touch layout has not been tested on a real phone.
@@ -60,5 +61,5 @@ Controls: **Q** or right-click aim · **F** or left-click fire (pointer must be 
 1. Enemies with perception that reacts to noise events (M3), hit reactions and ragdolls (Rapier).
 2. Melee: swing arcs, stagger, stealth takedowns from behind.
 3. Cover and a basic handler AI that flanks.
-4. Real gun models, animations and recorded audio; bullet travel time for long shots.
+4. Recorded audio, shell ejection, reload animations that move the hands to the magazine; bullet travel time for long shots.
 5. Adinkra powers wired to the combat loop (Echo first: replays the last noise to draw enemies away).

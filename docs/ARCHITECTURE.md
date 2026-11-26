@@ -50,6 +50,14 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - `audio.js`: procedural Web Audio (shots with an echo, clicks, impacts); starts on the first key press or click.
 - Fixed tick order: `weapons.step → range.tick → player.step → world.step`; per frame: `weapons.update → range.update → player.render → cam.update`.
 
+## Weapons (`src/weapons/`)
+
+- `models.js`: `buildPistol / buildRifle / buildDane`, each returning `{ group, muzzle, parts, rest, pose({ fire, reload, empty }) }`. Parts are bevelled side-profile extrusions (`slab`, with rounded corners, holes and creased normals), lathes, rods and rounded boxes. Metres, +z forward, origin at the middle of the grip. `pose` moves the working parts: slide (locks back when empty), bolt carrier, magazine out and in, hammer (falls on firing, stays down while reloading). 8 to 11k triangles per gun.
+- `materials.js`: `steel()` patches a physical material so that edges (found from how fast the normal turns per metre of surface) wear through to bare metal, with patchy wear, grime and micro-grain roughness; `polymer()` (stipple bump), `wood()` (canvas grain), `brass()`, `cloth()`. No image files.
+- `lab.js`: the Weapons collection (display table, cradles, cartridges, views, Fire / Slow-mo / Reload animations). Test hook: `__cols.weapons.inst.setHold({ pistol: { fire: .2 } })` freezes a pose.
+- Play mode uses the same models. `weapons.js` poses the arms with two-bone IK to the grip (wrist pulled back so the palm lands on it), curls the fingers (about local z, same sign on both hands), and calls `pose()` from the shot timer and the reload progress.
+- The stage `weapons` uses a `bench` environment (overhead softbox and long strip lights) so the metal has something to reflect.
+
 ## Debug hooks (used by the tests)
 
 `window.__game` (while playing: `player`, `cam`, `input`, `P`, `level`, `range`, `weapons`, `audio`, `simulate(sec)` to step physics without rendering), `__enterPlay()`, `__playing`.

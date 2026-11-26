@@ -4,7 +4,7 @@ A browser game in the making: realistic-leaning characters (zombies, humans, her
 [three.js](https://threejs.org), with a procedural "bio" shader layer (skin, rot, wounds, grime, armour wear)
 on top of rigged models and a real photo-scanned head.
 
-Right now this repo has two parts: the **character lab** (four collections you can orbit, zoom and animate) and a first
+Right now this repo has two parts: the **character lab** (five collections you can orbit, zoom and animate, including a **Weapons** page) and a first
 **playable test street**: press **â–¶ Play** and run a hero around a small West-African-style street with real physics.
 It is the foundation for the game itself (see [docs/ROADMAP.md](docs/ROADMAP.md)).
 
@@ -18,6 +18,7 @@ On a phone: left thumb moves, right thumb looks, JUMP / RUN / FIRE / AIM / R / â
 | Oni Night | The original three characters with procedural gear |
 | Undead | The Walker (infected trooper), Patient Zero, The Turned (scanned-head bust) |
 | Heroes | Vanguard Prime and Aegis: plate armour, energy blade, cape, circuitry |
+| Weapons | Pistol, assault rifle and Dane gun: bevelled multi-part models with working slide / bolt / magazine / hammer, steel with edge wear, wood, brass. Fire, Slow-mo and Reload animations |
 | Humans | Scanned-head busts (full-body humans are the next character task) |
 
 ## Run it
@@ -30,14 +31,14 @@ npm run dev          # http://localhost:5173  (also reachable from your phone on
 npm run build        # production build in dist/
 npm run preview      # serve dist/ on :4173
 npm run lint         # catches undefined names and other slips
-npm run test:screens # headless smoke tests (lab, play, shooting) + screenshots into docs/screens/ (needs `npm i --no-save playwright`)
+npm run test:screens # headless smoke tests (lab, play, shooting, weapons) + screenshots into docs/screens/ (needs `npm i --no-save playwright`)
 npm run inspect -- public/models/soldier.glb   # dump a model's rig, meshes, materials, textures
 ```
 
 The character models (about 9 MB) are **not stored in this repo**. `npm run dev` and `npm run build` download them
 automatically into `public/models/` from the three.js examples (pinned tag, SHA-256 verified). Run `npm run assets` to do it by hand.
 
-URL options: `?play=1` starts the game directly, `?c=oni|undead|heroes|humans` picks the collection, `&q=low|med|high` picks the quality tier
+URL options: `?play=1` starts the game directly, `?c=oni|undead|heroes|weapons|humans` picks the collection, `&q=low|med|high` picks the quality tier
 (default: `high` on desktop, `med` on phones).
 
 ## Layout
@@ -48,12 +49,14 @@ src/shaders/bio.js        the procedural skin / rot / wound / armour shader (inj
 src/characters/           one file per collection + factory.js (rig loading, retargeting) + gear/
 src/game/                 play mode: physics.js (Rapier), world.js (the street), player.js, camera.js, input.js, textures.js, game.js,
                           weapons.js (guns, aiming, recoil, effects), range.js (firing range targets), audio.js (procedural sound)
+src/weapons/               detailed gun models (models.js), their procedural materials (materials.js) and the lab page (lab.js)
 src/main.js               collection registry, UI, main loop
 public/models/            downloaded GLB rigs and head scan (git-ignored)
 tools/                    fetch-assets.mjs (model download + checksums), inspect-glb.mjs
 tests/screenshots.cjs     loads every collection, fails on errors, saves screenshots
 tests/play.cjs            drives the hero with real key events (walk, run, jump, wall collision) and screenshots the street
 tests/shoot.cjs           drives the weapons at the firing range (aim, recoil, reload, auto fire, headshots, Dane gun)
+tests/weapons.cjs         checks the weapon models build, their working parts move, and every Weapons-page view renders
 .github/workflows/        CI (lint, build, screenshots) and GitHub Pages deploy
 docs/                     ARCHITECTURE, ASSETS (licences), ROADMAP, STORY, REALISM, COMBAT
 ```

@@ -11,7 +11,7 @@ Order matters: each milestone is playable or visible on its own.
 - Unreal-class fidelity is not a realistic target in a browser. Convincing, dense, atmospheric, and a believable Ghana is.
 
 ## M1: Character lab (done)
-Four collections, bio shader, scanned head, gear, retargeted animation, quality tiers, CI, Pages deploy.
+Five collections (the fifth, Weapons, holds the gun models), bio shader, scanned head, gear, retargeted animation, quality tiers, CI, Pages deploy.
 
 **Humans collection is still scanned-head busts on pedestals, not full bodies.** Putting the scanned head on a rigged, dressed body is the next character task, and it comes before NPCs because NPCs reuse it.
 
@@ -23,8 +23,8 @@ follow camera with wall collision and zoom, keyboard + mouse (drag or pointer-lo
 an asphalt road, drains, shops with signs, kiosks, a chop bar, a container shop, an unfinished concrete frame, compound houses, poles with wires and foliage trees.
 Everything solid has a collider; `tests/play.cjs` checks walking, running, jumping, wall collision and the return to the lab.
 **Shooting prototype (done):** over-the-shoulder aim, pistol / assault rifle / Dane gun, spread, recoil, magazines and reloads, hit-scan through Rapier, tracers, muzzle flash, impact effects, decals,
-hit markers, noise events, procedural gun audio, and a firing range (steel plates, physics drums / crates / cans, mannequins with headshots). `tests/shoot.cjs` covers it. Design: [COMBAT.md](COMBAT.md).
-Still to do: crouch, gamepad, interaction prompts (doors, shops), day/night cycle, footsteps/ambient audio, vehicles, interiors, real gun models and recorded sound, strafe animations.
+hit markers, noise events, procedural gun audio, detailed animated gun models (shared with the Weapons lab page; arms use IK and the fingers curl round the grips), and a firing range (steel plates, physics drums / crates / cans, mannequins with headshots). `tests/shoot.cjs` covers it. Design: [COMBAT.md](COMBAT.md).
+Still to do: crouch, gamepad, interaction prompts (doors, shops), day/night cycle, footsteps/ambient audio, vehicles, interiors, recorded gun sound, shell ejection, strafe animations.
 
 ## M3: NPCs
 - **Pedestrians and survivors**: the existing rigs, re-skinned per NPC by the bio shader (skin tone, clothing colours, wear), so one skeleton gives a varied crowd.
