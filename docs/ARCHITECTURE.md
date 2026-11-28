@@ -37,6 +37,16 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - Gear (armour plates, bandages, spores, cape, blade) attaches to bones with `attachAt(character, bone, object, worldPointRelativeToRoot)`; offsets are in the character's root space, in metres, in the bind pose.
 - Zombie posture is layered over animation after `mixer.update` with `rotBone` (rotation about a world axis re-expressed in the parent bone's space).
 
+### Playable people (`mh.js`, `wardrobe.js`, `people.js`, `retarget.js`, `choice.js`, `cast.js`)
+
+- `mh.js: makeHuman(spec)` builds a person from the MakeHuman base mesh in the browser. The **body is always bare**: gender, age, muscle, weight, ethnicity and face are "modifiers" (small per-vertex offset files, `targets/*.bin`, blended by the same stack rules MakeHuman uses: `macroStack`), the skin is a real 2048 px texture. A skeleton (the 53-bone `game_engine` rig; each joint at the mean of a set of base-mesh vertices, bones with identity rotation) is placed inside the finished body.
+- **Everything worn is its own mesh.** `human.set(slot, name, opts)` loads a *proxy* (hair, eyebrows, eyelashes, a clothes item): for each vertex it stores three base-mesh vertices, their weights and an offset, so the item re-fits onto any body shape; its skin weights are blended from the same three vertices, so it deforms with the body in every animation. Body triangles that a garment covers (`hide` lists) are dropped. `LOGO_PATCHES` paints the library's logo out of the tee textures when they load.
+- `wardrobe.js`: the catalogue (12 outfits, 6 shoes, 2 hats, 10 hairstyles, with the labels the page shows). Slots: `hair`, `outfit`, `shoes`, `hat`. `choice.js` remembers each hero's picks in localStorage; `main.js` builds the wardrobe panel (‹ ›) on the Choose hero page. `body.wear(slot, id)` changes an item live (short hair is not drawn under a hat).
+- `people.js: makePerson(spec)`: `makeHuman` + renames the bones to the Mixamo names the game expects (`BONEMAP` in `retarget.js`) + retargets the Mixamo clips + `makeBody`. `PEOPLE` holds the heroes (names are placeholders).
+- `retarget.js: retargetWorld` bakes the Soldier's Walk/Run and the X Bot's Idle onto the new skeleton in **world space**: target world rotation = source animated world x inverse source bind world x *rest alignment* x target bind world. The rest alignment turns each target bone to point where the same source bone points at rest, so an A-pose body (arms down) and a T-pose source move the same way. Hips move only vertically, scaled by leg length.
+- `cast.js`: the **Choose hero** collection. `inst.pick(ray)` selects a person by clicking; `inst.dress(id, slot, item)` changes what they wear; the Play button then reads *Play as <name>*, and `enterPlay(hero)` passes the id to `createGame` -> `createPlayer` (which applies the saved choices). `?play=1&hero=<id>` skips the page (used by tests).
+- `src/game/grips.js` holds the authored two-hand grips (see Play mode). Nothing in it assumes how a rig's bones are oriented: finger directions, the palm's normal and the forearm's length axis are read from the bind pose.
+
 ## Play mode (`src/game/`)
 
 - Lazy-loaded from `main.js` (`import('./game/game.js')`), so the lab does not download Rapier's WASM until Play is pressed.
@@ -45,6 +55,7 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - `player.js`: kinematic character controller (capsule 0.3 m radius, 1.8 m tall), steps, slopes, jump; animation state follows ground speed, clip playback speed follows ground speed (less foot-sliding).
 - `camera.js`: yaw/pitch orbit with a Rapier ray so the camera stops in front of walls. `input.js`: keyboard, mouse (drag or pointer lock), touch stick/look/jump/run.
 - `game.js` takes over the shared stage (`STAGES.game`, sky, sun sprite, shadow frustum following the player) and puts everything back on exit.
+- `grips.js`: authored hand poses per weapon and hand (`GRIPS`: where the wrist goes, which way the fingers and the palm face, a bend for every finger joint, thumb). `poseHand` puts the wrist there with the arm IK, shares the forearm/wrist roll so the skin does not wring, and sets every finger joint exactly; axes come from the rig's bind pose (finger direction x palm normal), so it works on any rig with Mixamo bone names. Tests can edit `weapons.grips` live and take close-ups.
 - `weapons.js`: weapon data (`WEAPONS`), hit-scan from the crosshair (`castRayAndGetNormal`, random cone from spread) against the Rapier world, recoil, magazines, effect pools (tracers, sparks, dust, decals), HUD, and the arm pose: two-bone IK after `mixer.update` plus a world-space gun. Shots push noise events into `weapons.noises` for future enemies.
 - `range.js`: firing range. Every shootable collider is registered in `tags` (collider handle → `{ kind, hit(info) }`), so the weapon code needs no knowledge of what it hit. Drums / crates / cans are dynamic Rapier bodies (impulse capped by mass); mannequins are static colliders that are disabled while down. Timers run in the fixed tick (`range.tick(h)`), mesh sync per frame (`range.update()`).
 - `audio.js`: procedural Web Audio (shots with an echo, clicks, impacts); starts on the first key press or click.
@@ -55,11 +66,11 @@ Everything procedural lives in shaders and JS. Nothing is baked into the GLB fil
 - `models.js`: `buildPistol / buildRifle / buildDane`, each returning `{ group, muzzle, parts, rest, pose({ fire, reload, empty }) }`. Parts are bevelled side-profile extrusions (`slab`, with rounded corners, holes and creased normals), lathes, rods and rounded boxes. Metres, +z forward, origin at the middle of the grip. `pose` moves the working parts: slide (locks back when empty), bolt carrier, magazine out and in, hammer (falls on firing, stays down while reloading). 8 to 11k triangles per gun.
 - `materials.js`: `steel()` patches a physical material so that edges (found from how fast the normal turns per metre of surface) wear through to bare metal, with patchy wear, grime and micro-grain roughness; `polymer()` (stipple bump), `wood()` (canvas grain), `brass()`, `cloth()`. No image files.
 - `lab.js`: the Weapons collection (display table, cradles, cartridges, views, Fire / Slow-mo / Reload animations). Test hook: `__cols.weapons.inst.setHold({ pistol: { fire: .2 } })` freezes a pose.
-- Play mode uses the same models. `weapons.js` poses the arms with two-bone IK to the grip (wrist pulled back so the palm lands on it), curls the fingers (about local z, same sign on both hands), and calls `pose()` from the shot timer and the reload progress.
+- Play mode uses the same models. `weapons.js` poses the arms with two-bone IK to the grip (wrist pulled back so the palm lands on it), for the realistic people uses `grips.js` (the armoured Soldier still curls its fingers about local z), and calls `pose()` from the shot timer and the reload progress.
 - The stage `weapons` uses a `bench` environment (overhead softbox and long strip lights) so the metal has something to reflect.
 
 ## Debug hooks (used by the tests)
 
 `window.__game` (while playing: `player`, `cam`, `input`, `P`, `level`, `range`, `weapons`, `audio`, `simulate(sec)` to step physics without rendering), `__enterPlay()`, `__playing`.
 
-`window.__col(id, view)`, `__view(name)`, `__setAnim(name)`, `__q(tier)`, `__stop()`, `__cols`, `__ready`, `__frames`.
+`window.__col(id, view)`, `__view(name)`, `__camera`, `__setAnim(name)`, `__q(tier)`, `__stop()`, `__cols`, `__ready`, `__frames`.

@@ -4,8 +4,8 @@ A browser game in the making: realistic-leaning characters (zombies, humans, her
 [three.js](https://threejs.org), with a procedural "bio" shader layer (skin, rot, wounds, grime, armour wear)
 on top of rigged models and a real photo-scanned head.
 
-Right now this repo has two parts: the **character lab** (five collections you can orbit, zoom and animate, including a **Weapons** page) and a first
-**playable test street**: press **▶ Play** and run a hero around a small West-African-style street with real physics.
+Right now this repo has two parts: the **character lab** (six collections you can orbit, zoom and animate, including **Weapons** and **Choose hero**) and a first
+**playable test street**: press **▶ Play** (it first takes you to **Choose hero**: click a man or a woman, choose what they wear, then *Play as …*) and run your hero around a small West-African-style street with real physics.
 It is the foundation for the game itself (see [docs/ROADMAP.md](docs/ROADMAP.md)).
 
 **Controls:** WASD / arrows move · Shift run · Space jump · mouse to look (click to capture, Esc to release) · wheel zoom.

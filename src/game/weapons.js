@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { glow, rng, clamp } from '../core/engine.js';
 import { RANGE_LINE } from './range.js';
 import { BUILDERS } from '../weapons/models.js';
+import { GRIPS, poseHand } from './grips.js';
 
 export const WEAPONS = [
   { id: 'pistol', name: 'Pistol', auto: false, rpm: 380, mag: 12, reserve: 48, dmg: 30, pellets: 1, spread: .3, bloom: .5, bloomMax: 2.2, kick: .018, kickYaw: .004, reload: 1.6, range: 150, sound: 'pistol', noise: .7, cycle: .16, lh: { fwd: .05, side: -.07, up: -.03 } },
@@ -173,7 +174,7 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
     for (const f of ['Index', 'Middle', 'Ring', 'Pinky']) for (let i = 1; i <= 3; i++) {
       const b = body.bones[`${side}Hand${f}${i}`]; if (!b) continue;
       const prev = fingerSet.get(b); if (!prev || !b.quaternion.equals(prev)) fingerRest.set(b, b.quaternion.clone());
-      qa.setFromAxisAngle(ZA, sgn * amount * [.8, 1.1, .7][i - 1]); b.quaternion.copy(fingerRest.get(b)).multiply(qa); fingerSet.set(b, b.quaternion.clone());
+      qa.setFromAxisAngle(body.curlAxis || ZA, (body.curlSign ?? sgn) * amount * [.8, 1.1, .7][i - 1]); b.quaternion.copy(fingerRest.get(b)).multiply(qa); fingerSet.set(b, b.quaternion.clone());
     }
   };
   const gunPos = new THREE.Vector3(), aimD = new THREE.Vector3(), fwd = new THREE.Vector3(), rgt = new THREE.Vector3(), mid = new THREE.Vector3(), dirNow = new THREE.Vector3(), hl = new THREE.Vector3(), poleR = new THREE.Vector3(), poleL = new THREE.Vector3();
@@ -188,12 +189,16 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
     body.bones.RightArm.getWorldPosition(_T); body.bones.LeftArm.getWorldPosition(mid); mid.add(_T).multiplyScalar(.5);                       // shoulder midpoint
     gunPos.copy(mid).addScaledVector(fwd, c.readyFwd * (1 - k) + c.fwd * k).addScaledVector(rgt, c.side).addScaledVector(UP, -(c.readyDrop * (1 - k) + c.drop * k) - dip * .12);
     if (k > .02) gunPos.addScaledVector(aimD, 0).y += aimD.y * c.fwd * k * .6;
-    hl.copy(gunPos).addScaledVector(dirNow, W.lh.fwd).addScaledVector(rgt, W.lh.side).addScaledVector(UP, W.lh.up);
     poleR.copy(rgt).multiplyScalar(.8).addScaledVector(UP, -.8); poleL.copy(rgt).multiplyScalar(-.8).addScaledVector(UP, -.8);
-    tgtR.copy(gunPos).addScaledVector(dirNow, -.06).addScaledVector(UP, .012); hl.addScaledVector(dirNow, -.05);          // the wrist sits behind the palm, so the palm lands on the grip
-    armIK(body, 'Right', tgtR, poleR); armIK(body, 'Left', hl, poleL);
-    curl(body, 'Right', 1.1 * k, CURL); curl(body, 'Left', (W.id === 'pistol' ? 1.1 : .9) * k, CURL);
     const gun = guns[w.cur]; gun.position.copy(gunPos); gun.lookAt(_T.copy(gunPos).addScaledVector(dirNow, 10)); gun.updateMatrixWorld(true);
+    if (body.person && GRIPS[W.id]) {                                            // realistic bodies: authored grip for each weapon (grips.js)
+      poseHand(body, 'Right', gun, GRIPS[W.id].R, armIK, poleR); poseHand(body, 'Left', gun, GRIPS[W.id].L, armIK, poleL);
+    } else {                                                                      // the armoured Soldier rig: wrist to the grip, fingers curled by a fixed amount
+      hl.copy(gunPos).addScaledVector(dirNow, W.lh.fwd).addScaledVector(rgt, W.lh.side).addScaledVector(UP, W.lh.up);
+      tgtR.copy(gunPos).addScaledVector(dirNow, -.06).addScaledVector(UP, .012); hl.addScaledVector(dirNow, -.05);          // the wrist sits behind the palm, so the palm lands on the grip
+      armIK(body, 'Right', tgtR, poleR); armIK(body, 'Left', hl, poleL);
+      curl(body, 'Right', 1.1 * k, CURL); curl(body, 'Left', (W.id === 'pistol' ? 1.1 : .9) * k, CURL);
+    }
     const M = models[w.cur], sn = w.sinceShot, ss = w.state; M.pose({ fire: sn < W.cycle ? sn / W.cycle : -1, reload: w.reload > 0 ? clamp(w.reload / W.reload, 0, 1) : 0, empty: ss.ammo === 0 }); gun.updateMatrixWorld(true);
     M.muzzle.getWorldPosition(muzzleP);
     if (w.flash > 0) { flashS.visible = flashS2.visible = true; flashS.position.copy(muzzleP); flashS2.position.copy(muzzleP); flashS.scale.setScalar(.26 + rnd() * .2); flashS2.scale.setScalar(.11 + rnd() * .06) } else flashS.visible = flashS2.visible = false;
@@ -208,7 +213,7 @@ export function createWeapons({ P, scene, camera, cam, player, hud, range, audio
     cam.update(0, player.pos, player.col); _d.set(x - cam.target.x, y - cam.target.y, z - cam.target.z); const len = _d.length();
     cam.yaw = Math.atan2(_d.x, _d.z); cam.pitch = -Math.asin(_d.y / len); cam.update(0, player.pos, player.col);
   };
-  w.select = selectWeapon; w.startReload = startReload;
+  w.select = selectWeapon; w.startReload = startReload; w.grips = GRIPS;
   w.dispose = function () {
     guns.forEach(g => { scene.remove(g); g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose() } }) });
     tracers.forEach(t => { scene.remove(t.m); t.m.geometry.dispose(); t.m.material.dispose() }); tmat.dispose();

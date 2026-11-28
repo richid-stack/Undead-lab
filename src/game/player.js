@@ -8,24 +8,30 @@ import { clamp } from '../core/engine.js';
 import { makeBody, play } from '../characters/factory.js';
 import { bioBody, attachAt } from '../characters/gear/common.js';
 import { capeMesh, energyCore } from '../characters/heroes.js';
+import { PEOPLE, makePerson } from '../characters/people.js';
+import { specOf } from '../characters/choice.js';
 
 export const WALK = 1.9, RUN = 5.0, JUMP_V = 5.6, GRAV = 17;
 const HALF = .6, RAD = .3, FOOT = HALF + RAD;              // capsule centre sits 0.9 m above the soles
 const angDiff = (a, b) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 
-export async function createPlayer(P, spawn, heading = Math.PI / 2) {
+export async function createPlayer(P, spawn, heading = Math.PI / 2, hero = 'vanguard') {
   const { RAPIER, world } = P;
-  const body = await makeBody('d_soldier', { height: 1.8, turn: Math.PI });
-  bioBody(body, {
-    bio: { rec: .92, recA: [.98, .8, .42], recB: [.05, .07, .11], circ: 1.1, glowCol: 0x59c7ff, wear: .85, grime: .12, blood: 0, seed: 12, pores: 0, bump: 1, skin: 0 },
-    perMat: (m, n) => /visor/i.test(n) ? { rec: 0, circ: 0, wear: 0, grime: 0 } : {},
-    wounds: [],
-  });
-  body.meshes.forEach(m => [].concat(m.material).forEach(mm => {
-    if (/visor/i.test(mm.name)) { mm.emissive = new THREE.Color(0x2fa8e8); mm.emissiveIntensity = .22; mm.roughness = .08; mm.metalness = .2; mm.color.set(0x050b14) } else { mm.metalness = .8; mm.roughness = .34 }
-  }));
-  attachAt(body, 'Spine2', energyCore(.03), [0, 1.42, .16]);
-  const cape = attachAt(body, 'Spine2', capeMesh(.52, 1.0, '#1b4fa0', '#d9a93a', 4), [0, 1.62, -.19]);
+  let body, cape = null;
+  if (PEOPLE[hero]) body = await makePerson(specOf(hero));
+  else {                                                                        // 'vanguard': the armoured Soldier rig with a cape
+    body = await makeBody('d_soldier', { height: 1.8, turn: Math.PI });
+    bioBody(body, {
+      bio: { rec: .92, recA: [.98, .8, .42], recB: [.05, .07, .11], circ: 1.1, glowCol: 0x59c7ff, wear: .85, grime: .12, blood: 0, seed: 12, pores: 0, bump: 1, skin: 0 },
+      perMat: (m, n) => /visor/i.test(n) ? { rec: 0, circ: 0, wear: 0, grime: 0 } : {},
+      wounds: [],
+    });
+    body.meshes.forEach(m => [].concat(m.material).forEach(mm => {
+      if (/visor/i.test(mm.name)) { mm.emissive = new THREE.Color(0x2fa8e8); mm.emissiveIntensity = .22; mm.roughness = .08; mm.metalness = .2; mm.color.set(0x050b14) } else { mm.metalness = .8; mm.roughness = .34 }
+    }));
+    attachAt(body, 'Spine2', energyCore(.03), [0, 1.42, .16]);
+    cape = attachAt(body, 'Spine2', capeMesh(.52, 1.0, '#1b4fa0', '#d9a93a', 4), [0, 1.62, -.19]);
+  }
 
   const rb = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(spawn.x, spawn.y + FOOT + .02, spawn.z));
   const col = world.createCollider(RAPIER.ColliderDesc.capsule(HALF, RAD), rb);

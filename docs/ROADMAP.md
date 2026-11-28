@@ -11,7 +11,7 @@ Order matters: each milestone is playable or visible on its own.
 - Unreal-class fidelity is not a realistic target in a browser. Convincing, dense, atmospheric, and a believable Ghana is.
 
 ## M1: Character lab (done)
-Five collections (the fifth, Weapons, holds the gun models), bio shader, scanned head, gear, retargeted animation, quality tiers, CI, Pages deploy.
+Six collections (Weapons holds the gun models; **Choose hero** holds the playable people), bio shader, scanned head, gear, retargeted animation, quality tiers, CI, Pages deploy.
 
 **Humans collection is still scanned-head busts on pedestals, not full bodies.** Putting the scanned head on a rigged, dressed body is the next character task, and it comes before NPCs because NPCs reuse it.
 
@@ -24,6 +24,8 @@ an asphalt road, drains, shops with signs, kiosks, a chop bar, a container shop,
 Everything solid has a collider; `tests/play.cjs` checks walking, running, jumping, wall collision and the return to the lab.
 **Shooting prototype (done):** over-the-shoulder aim, pistol / assault rifle / Dane gun, spread, recoil, magazines and reloads, hit-scan through Rapier, tracers, muzzle flash, impact effects, decals,
 hit markers, noise events, procedural gun audio, detailed animated gun models (shared with the Weapons lab page; arms use IK and the fingers curl round the grips), and a firing range (steel plates, physics drums / crates / cans, mannequins with headshots). `tests/shoot.cjs` covers it. Design: [COMBAT.md](COMBAT.md).
+**Playable people (done):** the Choose hero page (click a person, choose what they wear, press *Play as …*): two women and two men built from the free CC0 MakeHuman assets, each with their own face and build and a **bare body underneath**. Hair (10 styles), outfit (12), shoes (6) and hat (2) are separate real garments the player picks (remembered per hero); Idle / Walk / Run are retargeted from Mixamo clips; authored two-hand gun grips (pistol, rifle, Dane gun); the same shooting, IK and tests as the first hero. `tests/people.cjs`.
+Limits: the library's clothes are casual / formal / work / sport pieces (no Kente, Ankara or school uniform yet: more CC0 packs exist, or they can be made); logos were painted out of the tees; a few outfits are one piece (shirt + trousers); faces are shaped by modifiers, not scans (volunteer scans would still be better); no cloth physics; the body has no underwear (a bare body is shown only if a player picks no outfit - the picker always keeps one).
 Still to do: crouch, gamepad, interaction prompts (doors, shops), day/night cycle, footsteps/ambient audio, vehicles, interiors, recorded gun sound, shell ejection, strafe animations.
 
 ## M3: NPCs
@@ -67,6 +69,6 @@ Missions, interiors (hand-built or templated rooms), vehicles, hiding places, in
 ## Needs your input
 - Correct the landmark list in docs/STORY.md and say where campus feels most alive to you.
 - Reference photos of campus corners, and any recordings of campus sounds (see docs/REALISM.md).
-- Hero: Kwesi, a woman, or a choice at the start?
+- ~~Hero: Kwesi, a woman, or a choice at the start?~~ Decided: choice at the start, both genders (the Choose hero page). Tell me the names you want.
 - Whether you can scan volunteers' faces (with written consent) for the main cast.
 - Public or private repo (see `docs/ASSETS.md`).

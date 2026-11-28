@@ -10,6 +10,9 @@ import { buildHumans } from './characters/humans.js';
 import { buildUndead } from './characters/undead.js';
 import { buildHeroes } from './characters/heroes.js';
 import { buildWeapons } from './weapons/lab.js';
+import { buildCast } from './characters/cast.js';
+import { PEOPLE } from './characters/people.js';
+import { SLOTS } from './characters/wardrobe.js';
 import './style.css';
 
 // =====================================================================================
@@ -19,6 +22,7 @@ export const COLS = {
   oni: { label: 'Oni Night', stage: 'oni', build: buildOni, credit: '' },
   undead: { label: 'Undead', stage: 'undead', build: buildUndead, credit: 'Head scan: Infinite / Lee Perry-Smith (CC-BY 3.0, triplegangers.com)' },
   heroes: { label: 'Heroes', stage: 'heroes', build: buildHeroes, credit: '' },
+  cast: { label: 'Choose hero', stage: 'humans', build: buildCast, credit: 'Bodies, hair, clothes, shoes, skins: MakeHuman community assets (CC0) · animations: Mixamo Soldier and X Bot (three.js examples) retargeted' },
   weapons: { label: 'Weapons', stage: 'weapons', build: buildWeapons, credit: '' },
   humans: { label: 'Humans', stage: 'humans', build: buildHumans, credit: 'Head scan: Infinite / Lee Perry-Smith (CC-BY 3.0, triplegangers.com)' },
 };
@@ -30,6 +34,7 @@ export function setView(n, instant) {
   if (instant) { camera.position.copy(tp); controls.target.copy(tt); controls.update(); tween = null } else tween = { p: tp, t: tt };
   document.querySelector('#name b').textContent = v.n[0]; document.querySelector('#name span').textContent = v.n[1];
   document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === n));
+  playLabel(); wardrobeUI();
 }
 export function setAnim(w) {
   animSel = w; const C = COLS[cur]; C.inst.setAnim(w);
@@ -52,19 +57,53 @@ export async function selectCollection(id, view = 'lineup') {
   window.__ready = id;
 }
 for (const [id, C] of Object.entries(COLS)) { const b = document.createElement('button'); b.textContent = C.label; b.dataset.c = id; b.onclick = () => selectCollection(id); $('cols').appendChild(b) }
-const playBtn = document.createElement('button'); playBtn.textContent = '▶ Play'; playBtn.className = 'play'; playBtn.onclick = () => enterPlay(); $('cols').appendChild(playBtn);
+const playBtn = document.createElement('button'); playBtn.textContent = '▶ Play'; playBtn.className = 'play'; $('cols').appendChild(playBtn);
+// Play starts the street as the hero picked on the "Choose hero" page; from any other page it takes you there first
+const picked = () => cur === 'cast' && PEOPLE[curView] ? curView : null;
+function playLabel() { playBtn.textContent = picked() ? '▶ Play as ' + PEOPLE[curView].name : cur === 'cast' ? '▶ Pick a hero' : '▶ Play' }
+playBtn.onclick = async () => {
+  const h = picked(); if (h) return enterPlay(h);
+  if (cur !== 'cast') await selectCollection('cast'); else setView('lineup');
+};
+// click a person on the "Choose hero" page to pick them (a drag is an orbit, not a click)
+{
+  let down = null; const rc = new THREE.Raycaster(), el = renderer.domElement;
+  el.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY] });
+  el.addEventListener('pointerup', e => {
+    if (playing || !down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return; down = null;
+    const C = COLS[cur]; if (!C || !C.inst || !C.inst.pick) return;
+    rc.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), camera);
+    const id = C.inst.pick(rc.ray); if (id) setView(id);
+  });
+}
+// ---- the wardrobe panel on the "Choose hero" page: bare body underneath, the player picks hair, outfit, shoes and hat ----
+const wardrobe = Object.assign(document.createElement('div'), { id: 'wardrobe' }); document.body.appendChild(wardrobe);
+function wardrobeUI() {
+  const C = COLS[cur], id = picked();
+  if (!id || !C.inst.dress) { wardrobe.style.display = 'none'; return }
+  const P = PEOPLE[id], now = C.inst.wearing(id); wardrobe.style.display = 'block'; wardrobe.innerHTML = `<h3>${P.name} wears</h3>`;
+  for (const [slot, title, items, optional] of SLOTS) {
+    const list = [...(optional ? [{ id: null, label: 'None' }] : []), ...(slot === 'outfit' ? [...items].sort((a, b) => (b.id.startsWith(P.sex === 'f' ? 'female' : 'male') ? 1 : 0) - (a.id.startsWith(P.sex === 'f' ? 'female' : 'male') ? 1 : 0)) : items)];
+    const row = document.createElement('div'); row.className = 'wrow'; const at = () => Math.max(0, list.findIndex(x => x.id === now[slot]));
+    row.innerHTML = `<small>${title}</small><button aria-label="previous ${title}">‹</button><span></span><button aria-label="next ${title}">›</button>`;
+    const label = row.querySelector('span'), show = () => { label.textContent = list[at()].label };
+    const step = d => async () => { const i = (at() + d + list.length) % list.length; now[slot] = list[i].id; show(); await C.inst.dress(id, slot, list[i].id) };
+    row.children[1].onclick = step(-1); row.children[3].onclick = step(1); show(); wardrobe.appendChild(row);
+  }
+}
 $('q').onclick = () => setQuality({ low: 'med', med: 'high', high: 'low' }[QL]);
-Object.assign(window, { __view: n => setView(n, true), __col: (id, v) => selectCollection(id, v), __stop: () => { controls.autoRotate = false }, __setAnim: setAnim, __q: setQuality, __cols: COLS });
+Object.assign(window, { __view: n => setView(n, true), __col: (id, v) => selectCollection(id, v), __stop: () => { controls.autoRotate = false }, __setAnim: setAnim, __q: setQuality, __cols: COLS, __camera: camera });
 
 // ---- play mode (lazy: Rapier + the street are only fetched when Play is pressed) ----
 export let game = null; let playing = false;
-export async function enterPlay() {
+export async function enterPlay(hero) {
   if (playing) return; playing = true;
+  hero = typeof hero === 'string' ? hero : URLQ.get('hero') || 'vanguard';
   const l = busy('Loading game…');
   try {
     const { createGame } = await import('./game/game.js');
     for (const o of Object.values(COLS)) if (o.inst) o.inst.group.visible = false;
-    game = await createGame({ onExit: exitPlay, say: m => { const e = $('loadmsg'); if (e) e.textContent = m } });
+    game = await createGame({ hero, onExit: exitPlay, say: m => { const e = $('loadmsg'); if (e) e.textContent = m } });
   } catch (e) {
     console.error('GAME FAIL', e); l.firstChild.textContent = 'Failed: ' + e.message; game = null; playing = false;
     await new Promise(r => setTimeout(r, 1800)); await selectCollection(cur, curView); return;

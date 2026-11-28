@@ -1,7 +1,8 @@
-// Downloads the character rigs and the head scan into public/models/.
+// Downloads the character rigs, the head scan and the playable people (MakeHuman body, hair, clothes, shoes, skins) into public/models/.
 //
 // The binary models are NOT stored in this repository. They come, byte for byte, from the
-// three.js examples at the pinned tag below, and every file is checked against a SHA-256
+// three.js examples at the pinned tag below (and, for the people, from a pinned commit of the open HumanGenWeb repository, which holds
+// the CC0 MakeHuman community assets in a web-ready form; the file list and hashes are in tools/mh-manifest.json), and every file is checked against a SHA-256
 // so a changed or corrupted download fails loudly instead of rendering wrongly.
 //
 //   npm run assets            (also runs automatically before `npm run dev` and `npm run build`)
@@ -9,7 +10,7 @@
 //
 // Licences: see docs/ASSETS.md. The Soldier / Xbot / Michelle rigs originate from Mixamo.
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,13 +45,13 @@ async function download(url) {
 if (process.env.SKIP_ASSETS) { console.log('assets: SKIP_ASSETS set, skipping'); process.exit(0); }
 
 let fetched = 0;
-for (const [remote, local, hash] of FILES) {
+for (const [remote, local, hash, absolute] of FILES) {
   const dest = join(OUT, local);
   if (existsSync(dest) && sha256(readFileSync(dest)) === hash) continue;
   process.stdout.write(`assets: downloading ${local} ... `);
   let buf;
-  try { buf = await download(BASE + remote); } catch (e) {
-    console.error(`\nassets: could not download ${BASE + remote}: ${e.message}`);
+  try { buf = await download(absolute ? remote : BASE + remote); } catch (e) {
+    console.error(`\nassets: could not download ${absolute ? remote : BASE + remote}: ${e.message}`);
     console.error('assets: check your internet connection, or download the files by hand into public/models/ (see docs/ASSETS.md).');
     process.exit(1);
   }
@@ -63,4 +64,20 @@ for (const [remote, local, hash] of FILES) {
   fetched++;
   console.log(`${(buf.length / 1048576).toFixed(1)} MB ok`);
 }
+
+// ---- the MakeHuman people: every file in the manifest, a few at a time ----
+const MH = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'mh-manifest.json'), 'utf8'));
+const mhDir = join(OUT, 'mh');
+if (existsSync(mhDir) && lstatSync(mhDir).isSymbolicLink()) rmSync(mhDir);                  // a developer's symlink to a local copy: replace it with the verified download
+const todo = Object.entries(MH.files).filter(([f, hash]) => { const dest = join(mhDir, f); return !(existsSync(dest) && sha256(readFileSync(dest)) === hash) });
+let mhBytes = 0, next = 0;
+async function worker() {
+  while (next < todo.length) {
+    const [f, hash] = todo[next++], url = `https://raw.githubusercontent.com/${MH.repo}/${MH.commit}/${MH.root}${f}`;
+    let buf; try { buf = await download(url) } catch (e) { console.error(`\nassets: could not download ${url}: ${e.message}`); process.exit(1) }
+    if (sha256(buf) !== hash) { console.error(`\nassets: mh/${f} does not match the expected SHA-256; refusing to use it.`); process.exit(1) }
+    const dest = join(mhDir, f); mkdirSync(dirname(dest), { recursive: true }); writeFileSync(dest, buf); mhBytes += buf.length;
+  }
+}
+if (todo.length) { process.stdout.write(`assets: downloading ${todo.length} MakeHuman people files ... `); await Promise.all(Array.from({ length: 8 }, worker)); console.log(`${(mhBytes / 1048576).toFixed(1)} MB ok`); fetched += todo.length }
 console.log(fetched ? `assets: ${fetched} file(s) downloaded` : 'assets: all present and verified');

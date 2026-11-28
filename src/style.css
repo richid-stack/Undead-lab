@@ -56,3 +56,12 @@ body.touch #ammo{bottom:calc(env(safe-area-inset-bottom,0px) + 240px)}
 #reloadbtn,#swapbtn{width:54px;height:54px;right:188px}
 #reloadbtn{bottom:calc(env(safe-area-inset-bottom,0px) + 30px)}
 #swapbtn{bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+
+#wardrobe{position:fixed;right:10px;top:50%;transform:translateY(-50%);width:236px;background:rgba(20,16,14,.72);border:1px solid #ffffff22;border-radius:12px;padding:10px 12px;backdrop-filter:blur(6px);display:none;z-index:5}
+#wardrobe h3{margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+#wardrobe .wrow{display:grid;grid-template-columns:34px 1fr 34px;grid-template-rows:auto auto;gap:2px 4px;margin:0 0 9px;align-items:center}
+#wardrobe .wrow small{grid-column:1/4;font-size:10px;opacity:.6;letter-spacing:.08em;text-transform:uppercase}
+#wardrobe .wrow button{padding:6px 0;font-size:16px;line-height:1}
+#wardrobe .wrow span{font-size:12px;text-align:center;line-height:1.25}
+body.playing #wardrobe{display:none!important}
+@media (max-width:640px){#wardrobe{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 112px);transform:none;right:8px;left:8px;width:auto;display:none}#wardrobe .wrow{grid-template-columns:26px 34px 1fr 34px;grid-template-rows:auto}#wardrobe .wrow small{grid-column:auto}}

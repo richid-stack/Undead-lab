@@ -1,0 +1,10 @@
+MakeHuman community assets (body mesh, shape modifiers, skins, hair, clothes, shoes, hats, eyes, skeleton)
+-------------------------------------------------------------------------------------------------------
+Made by the MakeHuman community (https://www.makehumancommunity.org/). The system assets are released under CC0 1.0 (public domain
+dedication): no credit is required, and it is given anyway.
+
+The game downloads them as web-ready files from the open repository NastyFFM/HumanGenWeb (https://github.com/NastyFFM/HumanGenWeb), pinned to
+commit a8ee33f96791ed15534246ac88cc8b20f9da8f6a, and checks every file against the SHA-256 in tools/mh-manifest.json.
+That repository's own application code is MIT licensed; the game does not use its application code, only its data files.
+
+The tees in the library carry the MakeHuman project's logo; the game paints it out of the textures when they load (src/characters/mh.js, LOGO_PATCHES).

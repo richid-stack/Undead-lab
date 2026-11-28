@@ -15,13 +15,13 @@ import { buildRange } from './range.js';
 import { createWeapons } from './weapons.js';
 import { createAudio } from './audio.js';
 
-export async function createGame({ onExit, say = () => {} }) {
+export async function createGame({ onExit, say = () => {}, hero = 'vanguard' }) {
   say('Starting physics…');
   const P = await createPhysics();
   say('Building the street…');
   const level = buildStreet(P);
   say('Loading the hero…');
-  const player = await createPlayer(P, level.spawn, level.heading);
+  const player = await createPlayer(P, level.spawn, level.heading, hero);
 
   // ---- take over the shared stage (and remember what to put back) ----
   const saved = { far: camera.far, near: camera.near, fov: camera.fov };

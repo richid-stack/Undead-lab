@@ -26,7 +26,7 @@ const IGNORE = /GPU stall|ReadPixels|Automatic fallback|WebGL: INVALID|favicon/;
       '--ignore-gpu-blocklist', '--enable-webgl', '--disable-gpu-vsync'],
   });
   let failed = 0;
-  const ids = (process.env.COLS || 'oni,undead,heroes,humans').split(',');
+  const ids = (process.env.COLS || 'oni,undead,heroes,humans,cast').split(',');
   for (const id of ids) {
     const ctx = await browser.newContext({ viewport: { width: W, height: H } });
     const page = await ctx.newPage();

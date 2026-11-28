@@ -14,15 +14,16 @@ export const findClip = (c, w) => Object.keys(c.acts).find(n => n.toLowerCase().
 
 // ---------- generic skinned-character factory used by every new body ----------
 // opts: id (glb data id), x, height, turn, parse hook
-export async function makeBody(id, { x = 0, z = 0, height = 1.8, turn = 0 } = {}) {
-  const gltf = await glbOf(id), m = gltf.scene, root = new THREE.Group(); root.add(m); root.position.set(x, 0, z); m.rotation.y = turn;
+// opts.gltf: an already parsed (and possibly re-rigged) glTF to use instead of loading `id`; opts.ratio: head-bone height as a fraction of body height; opts.lift: how far above the sole the toe joint sits (metres, before scaling)
+export async function makeBody(id, { x = 0, z = 0, height = 1.8, turn = 0, gltf: pre = null, ratio = .9, lift = .025 } = {}) {
+  const gltf = pre || await glbOf(id), m = gltf.scene, root = new THREE.Group(); root.add(m); root.position.set(x, 0, z); m.rotation.y = turn;
   m.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; o.frustumCulled = false; if (o.material && o.material.map) o.material.map.anisotropy = 8 } });
   const bones = {}; m.traverse(o => { if (o.isBone) bones[o.name.replace('mixamorig', '')] = o });
   root.updateMatrixWorld(true);
   const wy = b => { b.updateWorldMatrix(true, false); return b.getWorldPosition(new THREE.Vector3()).y };
-  const raw = (wy(bones.Head) - Math.min(wy(bones.LeftToeBase), wy(bones.RightToeBase))) / .9;
+  const raw = (wy(bones.Head) - Math.min(wy(bones.LeftToeBase), wy(bones.RightToeBase))) / ratio;
   m.scale.setScalar(height / raw); m.updateMatrixWorld(true);
-  m.position.y = -(Math.min(wy(bones.LeftToeBase), wy(bones.RightToeBase)) - .025); m.updateMatrixWorld(true);
+  m.position.y = -(Math.min(wy(bones.LeftToeBase), wy(bones.RightToeBase)) - lift * m.scale.x); m.updateMatrixWorld(true);
   const mixer = new THREE.AnimationMixer(m), acts = {}; gltf.animations.forEach(a => acts[a.name] = mixer.clipAction(a));
   const meshes = []; m.traverse(o => { if (o.isMesh) meshes.push(o) });
   return { m, root, bones, mixer, acts, meshes, extras: [], pose: null, height, x, rest: {} };

@@ -9,7 +9,7 @@ It is inspired by documented patterns, not by any real organisation (see "Ground
 
 Accra, now, in harmattan season, when the dust turns every sunset orange. Near the University of Ghana, Legon, a company called **Halcyon Passage Group** sells young people a life abroad:
 jobs, scholarships, visas, "the Passage". Seminars in hotel ballrooms, friends who suddenly look rich, photos in luxury lobbies. You pay, you go, and the people who go do not come back; they send voice notes that sound a little too calm.
-You play **Kwesi Adjei**, a final-year Legon student whose cousin Efua took the Passage. Following her voice notes leads you under Legon hill to a railway that is not on any map: **the Hill Line**,
+You choose who to play at the start: **Kwesi Adjei** or **Abena Mensah** (more can be added; names are placeholders). Either way you are a final-year Legon student whose cousin Efua took the Passage. Following her voice notes leads you under Legon hill to a railway that is not on any map: **the Hill Line**,
 a colonial spur built in the 1940s, sealed at independence, its records burned. The company has reopened it as a **departure hall**. And something at the end of the line has been waiting a very long time for passengers.
 
 ## The idea underneath (why it is huge)
@@ -57,7 +57,7 @@ Powers unlock with story, not xp: each one is earned by hearing a name and finis
 
 ## The cast
 
-- **Kwesi Adjei**: the player. Final-year student, quiet, runs at dawn. His cousin Efua's last voice note is the first thing you hear. (Name and background are changeable.)
+- **Kwesi Adjei** and **Abena Mensah**: the playable leads; the player picks on the Choose hero page (both genders, same story, same voice note). Final-year students, quiet, up before dawn. Their cousin Efua's last voice note is the first thing you hear. (Names and backgrounds are changeable; two more placeholders, Ama and Kojo, are in the game for testing.)
 - **Auntie Dede**: runs a chop bar near the Night Market. The safehouse, the rumour mill, the cook. Knows every family on campus. Teaches you the names.
 - **Opanin Quaye**: retired railway signalman, 80 years old, who worked the last trains on the Accra lines and remembers the Hill Line. Your guide below ground, and slowly you learn why he never left.
 - **Dr. Akosua Frimpong**: history lecturer who found a fragment of the burned records. She knows what the Stationmaster is.
@@ -125,4 +125,4 @@ Okponglo, Madina market and station, Haatso, East Legon, Atomic Junction, Kwaben
 
 - Correct anything in "Real places" and tell me where the real campus feels most *alive* to you (a corner, a time of day, a sound).
 - Your photos of campus corners (see `docs/REALISM.md`), the most valuable input for making it feel real.
-- Who is the hero: Kwesi, or a woman, or a choice at the start?
+- ~~Who is the hero~~ Decided: the player chooses (a man or a woman). Tell me if you want different names or backgrounds.

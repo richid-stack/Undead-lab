@@ -13,11 +13,12 @@
     "preview": "vite preview --host --port 4173",
     "inspect": "node tools/inspect-glb.mjs",
     "lint": "eslint .",
-    "test:screens": "node tests/screenshots.cjs && node tests/play.cjs && node tests/shoot.cjs && node tests/weapons.cjs",
+    "test:screens": "node tests/screenshots.cjs && node tests/play.cjs && node tests/shoot.cjs && node tests/weapons.cjs && node tests/people.cjs",
     "test:play": "node tests/play.cjs",
     "test:shoot": "node tests/shoot.cjs",
     "test:weapons": "node tests/weapons.cjs",
-    "osm": "node tools/fetch-osm.mjs"
+    "osm": "node tools/fetch-osm.mjs",
+    "test:people": "node tests/people.cjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",
